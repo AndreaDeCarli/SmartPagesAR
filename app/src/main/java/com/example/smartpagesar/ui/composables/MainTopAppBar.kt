@@ -3,6 +3,7 @@ package com.example.smartpagesar.ui.composables
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -15,17 +16,25 @@ import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainTopAppBar(navController: NavController, title: String,  goBack: Boolean, action: @Composable (() -> Unit) = {}){
+fun MainTopAppBar(navController: NavController, title: String,  goBack: Boolean, action: @Composable (() -> Unit) = {}, onMenuOpen: () -> Unit = {}){
     TopAppBar(
         title = { Text(title) },
-        navigationIcon = { if (goBack) {
-            IconButton( onClick = {
-                //additionalAction()
-                navController.navigateUp()
-            }) {
-                Icon(Icons.Filled.ArrowBackIosNew, "Back")
+        navigationIcon = {
+            if (goBack) {
+                IconButton( onClick = {
+                    //additionalAction()
+                    navController.navigateUp()
+                }) {
+                    Icon(Icons.Filled.ArrowBackIosNew, "Back")
+                }
+            }else {
+                IconButton(
+                    onClick = onMenuOpen
+                ) {
+                    Icon(Icons.Filled.Menu, "Menu")
+                }
             }
-        } },
+         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary,
             navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,

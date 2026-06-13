@@ -1,35 +1,77 @@
 package com.example.smartpagesar.ui.screens
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartpagesar.ui.NavRoute
 import com.example.smartpagesar.ui.composables.MainBottomAppBar
 import com.example.smartpagesar.ui.composables.MainTopAppBar
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(navController: NavController, loginButtonAction: ()-> Unit){
-    Scaffold(
-        bottomBar = { MainBottomAppBar(navController, 1) },
-        topBar = { MainTopAppBar(navController, "Home", false, {
-            IconButton(
-                onClick = loginButtonAction )
-            { Icon(Icons.Filled.AccountCircle, "")  }
-        }) }
-    ) {innerPadding ->
-        Surface(
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            Text("deca")
+
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        gesturesEnabled = false,
+        drawerContent = {
+            ModalDrawerSheet{
+                Row( modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = {scope.launch { drawerState.close() }}) { Icon(Icons.Default.ArrowBackIosNew, "back") }
+                    Text("Pagine")
+                }
+                HorizontalDivider()
+                NavigationDrawerItem(
+                    label = { Text("Impostazioni") },
+                    selected = false,
+                    onClick = {},
+                    icon = { Icon(Icons.Filled.Settings, "settings") }
+                )
+            }
+        }
+    ) {
+        Scaffold(
+            bottomBar = { MainBottomAppBar(navController, 1) },
+            topBar = { MainTopAppBar(
+                navController,
+                "Home",
+                false,
+                {IconButton(onClick = loginButtonAction ){ Icon(Icons.Filled.AccountCircle, "")  }},
+                { scope.launch{ drawerState.open() } }
+                ) }
+        ) {innerPadding ->
+            Surface(
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                Text("Deca")
+            }
         }
     }
 }
