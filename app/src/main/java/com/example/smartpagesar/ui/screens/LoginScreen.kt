@@ -20,20 +20,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.smartpagesar.ui.NavRoute
 import com.example.smartpagesar.ui.composables.MainTopAppBar
 import com.example.smartpagesar.ui.viewmodels.LoginViewModel
 
 @Composable
 fun LoginScreen(
+    navController: NavController,
     viewModel: LoginViewModel,
     onLoginSuccess: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
-    Column(
+    Scaffold(
+        topBar = { MainTopAppBar(navController, "Login", true, {}) }
+    ) {
+        innerPadding -> Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(innerPadding),
         verticalArrangement = Arrangement.Center
     ) {
         Text(
@@ -76,5 +80,16 @@ fun LoginScreen(
                 color = MaterialTheme.colorScheme.error
             )
         }
+
+        Spacer(Modifier.height(300.dp))
+
+        Button(
+            onClick = { navController.navigate(NavRoute.RegisterScreen) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Registrati")
+        }
     }
+    }
+
 }

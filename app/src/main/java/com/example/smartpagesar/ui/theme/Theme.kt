@@ -33,7 +33,7 @@ private val DarkColorScheme = darkColorScheme(
     tertiaryContainer = Color(0xFF4A2EB3),
     onTertiaryContainer = Color(0xFFEDE7FF),
 
-    background = Color(0xFF0F1113),
+    background = Color(0xFF17202A),
     surface = Color(0xFF1A1C1E),
     outline = Color(0xFF5F6368)
 )

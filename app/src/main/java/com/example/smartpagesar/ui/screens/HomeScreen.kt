@@ -17,12 +17,12 @@ import com.example.smartpagesar.ui.composables.MainBottomAppBar
 import com.example.smartpagesar.ui.composables.MainTopAppBar
 
 @Composable
-fun HomeScreen(navController: NavController){
+fun HomeScreen(navController: NavController, loginButtonAction: ()-> Unit){
     Scaffold(
         bottomBar = { MainBottomAppBar(navController, 1) },
         topBar = { MainTopAppBar(navController, "Home", false, {
             IconButton(
-                onClick = {navController.navigate(NavRoute.LoginScreen)})
+                onClick = loginButtonAction )
             { Icon(Icons.Filled.AccountCircle, "")  }
         }) }
     ) {innerPadding ->

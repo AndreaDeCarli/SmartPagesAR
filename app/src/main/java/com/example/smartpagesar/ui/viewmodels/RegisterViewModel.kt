@@ -10,13 +10,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class LoginViewModel(
+class RegisterViewModel(
     private val supabase: SupabaseClient
 ) : ViewModel() {
 
     data class UiState(
         val email: String = "",
         val password: String = "",
+        val confirmPassword: String = "",
         val error: String? = null
     )
 
@@ -31,24 +32,31 @@ class LoginViewModel(
         _uiState.update { it.copy(password = value) }
     }
 
-    fun login(onSuccess: () -> Unit) {
+    fun onConfirmPasswordChange(value: String) {
+        _uiState.update { it.copy(confirmPassword = value) }
+    }
+
+    fun register(onSuccess: () -> Unit) {
         viewModelScope.launch {
+            val state = _uiState.value
+
+            if (state.password != state.confirmPassword) {
+                _uiState.update { it.copy(error = "Passwords do not match") }
+                return@launch
+            }
+
             try {
-                supabase.auth.signInWith(Email) {
-                    email = _uiState.value.email
-                    password = _uiState.value.password
+                supabase.auth.signUpWith(Email) {
+                    email = state.email
+                    password = state.password
                 }
+
                 _uiState.update { it.copy(error = null) }
                 onSuccess()
+
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }
-        }
-    }
-    fun logout(onDone: () -> Unit) {
-        viewModelScope.launch {
-            supabase.auth.signOut()
-            onDone()
         }
     }
 }

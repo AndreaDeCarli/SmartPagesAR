@@ -2,4 +2,6 @@
 <resources>
     <string name="app_name">SmartPages AR</string>
     <string name="books">Libri</string>
+    <string name="profile_title">Profilo</string>>
+    <string name="register_title">Registrati</string>
 </resources>

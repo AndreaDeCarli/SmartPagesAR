@@ -2,4 +2,6 @@
     <string name="app_name">SmartPages AR</string>
     <string name="books">Books</string>
     <string name="ar_page" translatable="false">AR</string>
+    <string name="profile_title">Profile</string>
+    <string name="register_title">Sign Up</string>
 </resources>

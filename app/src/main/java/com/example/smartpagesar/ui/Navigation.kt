@@ -5,8 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -14,14 +12,23 @@ import com.example.smartpagesar.SmartPagesARApplication
 import com.example.smartpagesar.ui.screens.ARScreen
 import com.example.smartpagesar.ui.screens.HomeScreen
 import com.example.smartpagesar.ui.screens.LoginScreen
+import com.example.smartpagesar.ui.screens.ProfileScreen
+import com.example.smartpagesar.ui.screens.RegisterScreen
 import com.example.smartpagesar.ui.viewmodels.LoginViewModel
 import com.example.smartpagesar.ui.viewmodels.LoginViewModelFactory
+import com.example.smartpagesar.ui.viewmodels.RegisterViewModel
+import com.example.smartpagesar.ui.viewmodels.RegisterViewModelFactory
+import io.github.jan.supabase.gotrue.auth
 import kotlinx.serialization.Serializable
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 
 sealed interface NavRoute{
     @Serializable data object HomeScreen : NavRoute
     @Serializable data object ARScreen : NavRoute
     @Serializable data object LoginScreen: NavRoute
+    @Serializable data object  ProfileScreen: NavRoute
+    @Serializable data object  RegisterScreen: NavRoute
 }
 
 @Composable
@@ -34,7 +41,13 @@ fun SmartPagesARNavGraph(navController: NavHostController){ //TODO add settings 
         startDestination = NavRoute.HomeScreen
     ){
         composable<NavRoute.HomeScreen> {
-            HomeScreen(navController)
+            HomeScreen(navController) {
+                if (app.supabase.auth.currentSessionOrNull() === null) {
+                    navController.navigate(NavRoute.LoginScreen)
+                }else{
+                    navController.navigate(NavRoute.ProfileScreen)
+                }
+            }
         }
 
         composable<NavRoute.ARScreen> {
@@ -49,8 +62,24 @@ fun SmartPagesARNavGraph(navController: NavHostController){ //TODO add settings 
 
             LoginScreen(
                 viewModel = loginVm,
-                onLoginSuccess = { navController.navigate(NavRoute.HomeScreen) }
+                onLoginSuccess = { navController.navigate(NavRoute.HomeScreen) },
+                navController = navController
             )
+        }
+        composable<NavRoute.ProfileScreen> {  }
+        composable<NavRoute.RegisterScreen> {
+            val registerVm: RegisterViewModel = viewModel(
+                factory = RegisterViewModelFactory(app.supabase)
+            )
+
+            RegisterScreen(navController, registerVm) { navController.navigate(NavRoute.LoginScreen) }
+        }
+        composable<NavRoute.ProfileScreen> {
+
+            val loginVm: LoginViewModel = viewModel(
+                factory = LoginViewModelFactory(app.supabase)
+            )
+            ProfileScreen(navController) { loginVm.logout( { navController.navigate(NavRoute.HomeScreen)} ) }
         }
     }
 }
