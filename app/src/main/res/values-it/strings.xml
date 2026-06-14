@@ -8,4 +8,7 @@
     <string name="drawer_title">Pagine</string>
     <string name="signin">Accedi</string>
     <string name="signup">Registrati</string>
+    <string name="theme_light">Chiaro</string>
+    <string name="theme_dark">Scuro</string>
+    <string name="theme_system">Sistema</string>
 </resources>

@@ -53,7 +53,7 @@ fun HomeScreen(navController: NavController, loginButtonAction: ()-> Unit){
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.settings_title)) },
                     selected = false,
-                    onClick = {},
+                    onClick = { navController.navigate(NavRoute.SettingsScreen) },
                     icon = { Icon(Icons.Filled.Settings, "settings") }
                 )
             }

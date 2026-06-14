@@ -24,8 +24,11 @@ import kotlinx.serialization.Serializable
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.smartpagesar.data.models.User
+import com.example.smartpagesar.ui.screens.SettingsScreen
 import com.example.smartpagesar.ui.viewmodels.ProfileViewModel
 import com.example.smartpagesar.ui.viewmodels.ProfileViewModelFactory
+import com.example.smartpagesar.ui.viewmodels.SettingsState
+import com.example.smartpagesar.ui.viewmodels.SettingsViewModel
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 
@@ -35,10 +38,11 @@ sealed interface NavRoute{
     @Serializable data object LoginScreen: NavRoute
     @Serializable data object  ProfileScreen: NavRoute
     @Serializable data object  RegisterScreen: NavRoute
+    @Serializable data object  SettingsScreen: NavRoute
 }
 
 @Composable
-fun SmartPagesARNavGraph(navController: NavHostController){ //TODO add settings viewmodel
+fun SmartPagesARNavGraph(navController: NavHostController, settingsState: SettingsState, settingsViewModel: SettingsViewModel){
     val ctx = LocalContext.current
     val app = ctx.applicationContext as SmartPagesARApplication
     val scope = rememberCoroutineScope()
@@ -91,6 +95,13 @@ fun SmartPagesARNavGraph(navController: NavHostController){ //TODO add settings 
             )
 
             ProfileScreen(navController, user = vm.user) { loginVm.logout( { navController.navigate(NavRoute.HomeScreen)} ) }
+        }
+        composable<NavRoute.SettingsScreen> {
+            SettingsScreen(
+                navController = navController,
+                state = settingsState,
+                settingsViewModel = settingsViewModel
+            )
         }
     }
 }

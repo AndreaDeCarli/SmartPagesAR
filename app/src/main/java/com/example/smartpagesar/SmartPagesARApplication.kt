@@ -6,6 +6,9 @@ import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.gotrue.Auth
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.storage.Storage
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.startKoin
 
 class SmartPagesARApplication: Application() {
     lateinit var supabase: SupabaseClient
@@ -20,6 +23,12 @@ class SmartPagesARApplication: Application() {
             install(Auth)
             install(Storage)
             install(Postgrest)
+        }
+
+        startKoin {
+            androidLogger()
+            androidContext(this@SmartPagesARApplication)
+            modules(appModule)
         }
     }
 }

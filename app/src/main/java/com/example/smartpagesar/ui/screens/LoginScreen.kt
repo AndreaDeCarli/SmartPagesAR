@@ -91,7 +91,6 @@ fun LoginScreen(
                     modifier = Modifier
                         .size(25.dp)
                         .padding(5.dp),
-                    color = MaterialTheme.colorScheme.onSecondary,
                     strokeWidth = 2.dp)
             }else{
                 Icon(Icons.Outlined.Login, "login")
