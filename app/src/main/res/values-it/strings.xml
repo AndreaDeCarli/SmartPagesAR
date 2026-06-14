@@ -4,4 +4,8 @@
     <string name="books">Libri</string>
     <string name="profile_title">Profilo</string>>
     <string name="register_title">Registrati</string>
+    <string name="settings_title">Impostazioni</string>
+    <string name="drawer_title">Pagine</string>
+    <string name="signin">Accedi</string>
+    <string name="signup">Registrati</string>
 </resources>

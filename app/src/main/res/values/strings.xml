@@ -4,4 +4,8 @@
     <string name="ar_page" translatable="false">AR</string>
     <string name="profile_title">Profile</string>
     <string name="register_title">Sign Up</string>
+    <string name="settings_title">Settings</string>
+    <string name="drawer_title">Pages</string>
+    <string name="signin">Sign In</string>
+    <string name="signup">Sign Up</string>
 </resources>

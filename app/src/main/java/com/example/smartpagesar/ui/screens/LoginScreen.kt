@@ -7,7 +7,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Login
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -16,10 +22,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.smartpagesar.R
 import com.example.smartpagesar.ui.NavRoute
 import com.example.smartpagesar.ui.composables.MainTopAppBar
 import com.example.smartpagesar.ui.viewmodels.LoginViewModel
@@ -31,6 +42,8 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var isLoading by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = { MainTopAppBar(navController, "Login", true, {}) }
     ) {
@@ -67,10 +80,22 @@ fun LoginScreen(
         Spacer(Modifier.height(24.dp))
 
         Button(
-            onClick = { viewModel.login(onLoginSuccess) },
+            onClick = {
+                isLoading = true
+                viewModel.login({ onLoginSuccess(); isLoading = false })},
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Sign In")
+            Text(stringResource(R.string.signin))
+            if (isLoading){
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(25.dp)
+                        .padding(5.dp),
+                    color = MaterialTheme.colorScheme.onSecondary,
+                    strokeWidth = 2.dp)
+            }else{
+                Icon(Icons.Outlined.Login, "login")
+            }
         }
 
         if (uiState.error != null) {

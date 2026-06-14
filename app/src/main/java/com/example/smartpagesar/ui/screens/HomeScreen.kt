@@ -23,8 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.smartpagesar.R
 import com.example.smartpagesar.ui.NavRoute
 import com.example.smartpagesar.ui.composables.MainBottomAppBar
 import com.example.smartpagesar.ui.composables.MainTopAppBar
@@ -39,17 +41,17 @@ fun HomeScreen(navController: NavController, loginButtonAction: ()-> Unit){
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = false,
+        gesturesEnabled = drawerState.isOpen,
         drawerContent = {
             ModalDrawerSheet{
                 Row( modifier = Modifier.padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = {scope.launch { drawerState.close() }}) { Icon(Icons.Default.ArrowBackIosNew, "back") }
-                    Text("Pagine")
+                    Text(stringResource(R.string.drawer_title))
                 }
                 HorizontalDivider()
                 NavigationDrawerItem(
-                    label = { Text("Impostazioni") },
+                    label = { Text(stringResource(R.string.settings_title)) },
                     selected = false,
                     onClick = {},
                     icon = { Icon(Icons.Filled.Settings, "settings") }

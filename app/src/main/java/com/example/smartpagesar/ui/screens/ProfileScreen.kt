@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.smartpagesar.data.models.User
 import com.example.smartpagesar.ui.composables.MainTopAppBar
 
 @Composable
@@ -20,17 +21,22 @@ import com.example.smartpagesar.ui.composables.MainTopAppBar
 
 fun ProfileScreen(
     navController: NavController,
+    user: User?,
     onLogout: () -> Unit
 ){
+
     Scaffold(
         topBar = { MainTopAppBar(navController, "Profilo", true, {}) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(innerPadding),
             verticalArrangement = Arrangement.Center
         ) {
+            if (user != null && user.name != null){
+                Text(user.name)
+            }
             Button(
                 onClick = onLogout,
                 modifier = Modifier.fillMaxWidth()

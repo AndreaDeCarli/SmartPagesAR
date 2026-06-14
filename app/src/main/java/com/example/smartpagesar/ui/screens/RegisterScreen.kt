@@ -80,7 +80,7 @@ fun RegisterScreen(
                 onClick = { viewModel.register(onRegisterSuccess) },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Sign Up")
+                Text(stringResource(R.string.signup))
             }
 
             if (uiState.error != null) {

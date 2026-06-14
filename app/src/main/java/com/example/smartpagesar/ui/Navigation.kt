@@ -2,6 +2,7 @@ package com.example.smartpagesar.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -22,6 +23,11 @@ import io.github.jan.supabase.gotrue.auth
 import kotlinx.serialization.Serializable
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.smartpagesar.data.models.User
+import com.example.smartpagesar.ui.viewmodels.ProfileViewModel
+import com.example.smartpagesar.ui.viewmodels.ProfileViewModelFactory
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 
 sealed interface NavRoute{
     @Serializable data object HomeScreen : NavRoute
@@ -35,7 +41,7 @@ sealed interface NavRoute{
 fun SmartPagesARNavGraph(navController: NavHostController){ //TODO add settings viewmodel
     val ctx = LocalContext.current
     val app = ctx.applicationContext as SmartPagesARApplication
-
+    val scope = rememberCoroutineScope()
 
     NavHost(navController = navController,
         startDestination = NavRoute.HomeScreen
@@ -79,7 +85,12 @@ fun SmartPagesARNavGraph(navController: NavHostController){ //TODO add settings 
             val loginVm: LoginViewModel = viewModel(
                 factory = LoginViewModelFactory(app.supabase)
             )
-            ProfileScreen(navController) { loginVm.logout( { navController.navigate(NavRoute.HomeScreen)} ) }
+
+            val vm: ProfileViewModel = viewModel(
+                factory = ProfileViewModelFactory(app.supabase)
+            )
+
+            ProfileScreen(navController, user = vm.user) { loginVm.logout( { navController.navigate(NavRoute.HomeScreen)} ) }
         }
     }
 }
