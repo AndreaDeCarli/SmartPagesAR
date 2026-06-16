@@ -24,4 +24,5 @@
     <string name="physics_label">Fisica</string>
     <string name="geography_label">Geografia</string>
     <string name="art_label">Arte</string>
+    <string name="chemistry_label">Chimica</string>
 </resources>

@@ -7,6 +7,7 @@ enum class Subject(val label: Int) {
     History(R.string.history_label),
     Biology(R.string.biology_label),
     Physics(R.string.physics_label),
+    Chemistry(R.string.chemistry_label),
     Geography(R.string.geography_label),
     Art(R.string.art_label)
 }

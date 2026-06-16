@@ -1,6 +1,7 @@
 package com.example.smartpagesar.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -24,7 +25,12 @@ import kotlinx.serialization.Serializable
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.smartpagesar.data.models.User
+import com.example.smartpagesar.ui.screens.DownloadBooksScreen
 import com.example.smartpagesar.ui.screens.SettingsScreen
+import com.example.smartpagesar.ui.viewmodels.BooksViewModel
+import com.example.smartpagesar.ui.viewmodels.BooksViewModelFactory
+import com.example.smartpagesar.ui.viewmodels.DownloadBooksViewModel
+import com.example.smartpagesar.ui.viewmodels.DownloadBooksViewModelFactory
 import com.example.smartpagesar.ui.viewmodels.ProfileViewModel
 import com.example.smartpagesar.ui.viewmodels.ProfileViewModelFactory
 import com.example.smartpagesar.ui.viewmodels.SettingsState
@@ -36,9 +42,10 @@ sealed interface NavRoute{
     @Serializable data object HomeScreen : NavRoute
     @Serializable data object ARScreen : NavRoute
     @Serializable data object LoginScreen: NavRoute
-    @Serializable data object  ProfileScreen: NavRoute
-    @Serializable data object  RegisterScreen: NavRoute
-    @Serializable data object  SettingsScreen: NavRoute
+    @Serializable data object ProfileScreen: NavRoute
+    @Serializable data object RegisterScreen: NavRoute
+    @Serializable data object SettingsScreen: NavRoute
+    @Serializable data object DownloadBooksScreen: NavRoute
 }
 
 @Composable
@@ -47,17 +54,32 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
     val app = ctx.applicationContext as SmartPagesARApplication
     val scope = rememberCoroutineScope()
 
+    fun navigateIfLoggedIn(route: NavRoute, otherRoute: NavRoute){
+        if (app.supabase.auth.currentSessionOrNull() === null) {
+            navController.navigate(route)
+        }else{
+            navController.navigate(otherRoute)
+        }
+    }
+
+
     NavHost(navController = navController,
         startDestination = NavRoute.HomeScreen
     ){
         composable<NavRoute.HomeScreen> {
-            HomeScreen(navController) {
-                if (app.supabase.auth.currentSessionOrNull() === null) {
-                    navController.navigate(NavRoute.LoginScreen)
-                }else{
-                    navController.navigate(NavRoute.ProfileScreen)
-                }
-            }
+
+            val vm: BooksViewModel = viewModel(
+                factory = BooksViewModelFactory(app.supabase)
+            )
+
+            val books by vm.books.collectAsState()
+
+            HomeScreen(
+                navController,
+                books,
+                { navigateIfLoggedIn(NavRoute.LoginScreen, NavRoute.ProfileScreen) },
+                { navigateIfLoggedIn(NavRoute.HomeScreen,NavRoute.DownloadBooksScreen) }
+                )
         }
 
         composable<NavRoute.ARScreen> {
@@ -101,5 +123,14 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
                 settingsViewModel = settingsViewModel
             )
         }
+        composable<NavRoute.DownloadBooksScreen> {
+            val vm: DownloadBooksViewModel = viewModel(
+                factory = DownloadBooksViewModelFactory(app.supabase)
+            )
+
+            val books by vm.books.collectAsState()
+            DownloadBooksScreen(navController, vm, books)
+        }
     }
 }
+

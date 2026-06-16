@@ -41,14 +41,12 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(navController: NavController, loginButtonAction: ()-> Unit){
-
-    // TODO remove these things for testing
-    val book1 = Book("gdag","The Theory of Math", "Tom Cruz", "Math", 12, 2021 )
-    val book2 = Book("", "The history of Us", "Micheal jardan", "History", 12, 2003)
-    val books = arrayOf(book1, book2)
-
-
+fun HomeScreen(
+    navController: NavController,
+    books: List<Book>,
+    loginButtonAction: ()-> Unit,
+    floatingActionButtonAction: () -> Unit
+){
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -83,7 +81,7 @@ fun HomeScreen(navController: NavController, loginButtonAction: ()-> Unit){
                 ) },
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = {  }
+                    onClick = floatingActionButtonAction
                 ) { Icon(Icons.Default.Download, "download") }
             }
         ) {innerPadding ->

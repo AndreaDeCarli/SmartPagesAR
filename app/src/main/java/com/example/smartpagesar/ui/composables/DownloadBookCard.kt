@@ -175,8 +175,8 @@ fun DownloadBookCard(
 @Preview
 @Composable
 fun DownloadBookCardPreview(){
-    val book1 = Book("gdag","The Theory of Math", "Tom Cruz", "Math", 12, 2021 )
-    val book2 = Book("", "The history of Us", "Micheal jardan", "History", 12, 2003)
+    val book1 = Book("gdag",0,"The Theory of Math", "Tom Cruz", "Math", 12, 2021 )
+    val book2 = Book("", 0,"The history of Us", "Micheal jardan", "History", 12, 2003)
     val books = arrayOf(book1, book2)
     val navController = NavController(LocalContext.current)
     Scaffold(
