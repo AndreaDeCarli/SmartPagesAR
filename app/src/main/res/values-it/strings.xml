@@ -11,4 +11,17 @@
     <string name="theme_light">Chiaro</string>
     <string name="theme_dark">Scuro</string>
     <string name="theme_system">Sistema</string>
+    <string name="logout">Disconnetti</string>
+    <string name="role_student">Studente</string>
+    <string name="role_teacher">Insegnante</string>
+    <string name="theme_label">Tema</string>
+    <string name="role_label">Ruolo</string>
+    <string name="name_label">Nome</string>
+    <string name="remove_generic">Elimina</string>
+    <string name="biology_label">Biologia</string>
+    <string name="math_label">Matematica</string>
+    <string name="history_label">Storia</string>
+    <string name="physics_label">Fisica</string>
+    <string name="geography_label">Geografia</string>
+    <string name="art_label">Arte</string>
 </resources>

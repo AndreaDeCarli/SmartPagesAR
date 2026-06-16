@@ -23,14 +23,14 @@ private val DarkColorScheme = darkColorScheme(
     primaryContainer = Color(0xFF004A9F),
     onPrimaryContainer = Color(0xFFD6E2FF),
 
-    secondary = Color(0xFF4DD0E1),
-    onSecondary = Color(0xFF00363D),
-    secondaryContainer = Color(0xFF005A64),
+    secondary = Color(0xFF08224D),
+    onSecondary = Color(0xFFE4F2FF),
+    secondaryContainer = Color(0xFF004164),
     onSecondaryContainer = Color(0xFFB2EBF2),
 
-    tertiary = Color(0xFFB39DFF),
-    onTertiary = Color(0xFF1A0064),
-    tertiaryContainer = Color(0xFF4A2EB3),
+    tertiary = Color(0xFFFFF4DF),
+    onTertiary = Color(0xFF053683),
+    tertiaryContainer = Color(0xFFB37E2E),
     onTertiaryContainer = Color(0xFFEDE7FF),
 
     background = Color(0xFF17202A),
@@ -44,15 +44,15 @@ private val LightColorScheme = lightColorScheme(
     primaryContainer = Color(0xFFD6E2FF),
     onPrimaryContainer = Color(0xFF001A43),
 
-    secondary = Color(0xFF00B8D4),
-    onSecondary = Color(0xFF00363D),
-    secondaryContainer = Color(0xFFB2EBF2),
-    onSecondaryContainer = Color(0xFF002022),
+    secondary = Color(0xFF0E6CDE),
+    onSecondary = Color(0xFFE2FBFF),
+    secondaryContainer = Color(0xFFE7FBFF),
+    onSecondaryContainer = Color(0xFF023A3D),
 
-    tertiary = Color(0xFF7C4DFF),
+    tertiary = Color(0xFF15066B),
     onTertiary = Color(0xFFFFFFFF),
-    tertiaryContainer = Color(0xFFEDE7FF),
-    onTertiaryContainer = Color(0xFF1A0064),
+    tertiaryContainer = Color(0xFFF5E3DA),
+    onTertiaryContainer = Color(0xFF642B00),
 
     background = Color(0xFFF8F9FA),
     surface = Color(0xFFFFFFFF),

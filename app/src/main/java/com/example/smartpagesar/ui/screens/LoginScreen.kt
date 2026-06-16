@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.outlined.Login
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material3.Button
@@ -50,7 +52,8 @@ fun LoginScreen(
         innerPadding -> Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding),
+            .padding(innerPadding)
+            .padding(16.dp),
         verticalArrangement = Arrangement.Center
     ) {
         Text(
@@ -85,12 +88,13 @@ fun LoginScreen(
                 viewModel.login({ onLoginSuccess(); isLoading = false })},
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(stringResource(R.string.signin))
+            Text(stringResource(R.string.signin), modifier = Modifier.padding(end = 10.dp))
             if (isLoading){
                 CircularProgressIndicator(
                     modifier = Modifier
                         .size(25.dp)
                         .padding(5.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
                     strokeWidth = 2.dp)
             }else{
                 Icon(Icons.Outlined.Login, "login")
@@ -111,7 +115,8 @@ fun LoginScreen(
             onClick = { navController.navigate(NavRoute.RegisterScreen) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Registrati")
+            Text(stringResource(R.string.signup), modifier = Modifier.padding(end = 10.dp))
+            Icon(Icons.Default.PersonAdd, "account")
         }
     }
     }

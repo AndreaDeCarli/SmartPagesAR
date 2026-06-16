@@ -42,7 +42,7 @@ fun SettingsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                CustomDivider(stringResource(R.string.settings_title))
+                CustomDivider(stringResource(R.string.theme_label))
                 Row(Modifier.selectableGroup()) {
                     Theme.entries.forEach { theme ->
                         Row(

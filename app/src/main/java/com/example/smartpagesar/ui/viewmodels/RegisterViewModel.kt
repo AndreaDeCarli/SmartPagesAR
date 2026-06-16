@@ -2,9 +2,12 @@ package com.example.smartpagesar.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.smartpagesar.data.models.Role
+import com.example.smartpagesar.data.models.User
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.providers.builtin.Email
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -18,6 +21,8 @@ class RegisterViewModel(
         val email: String = "",
         val password: String = "",
         val confirmPassword: String = "",
+        val name: String = "",
+        val role: Role = Role.Student,
         val error: String? = null
     )
 
@@ -26,6 +31,14 @@ class RegisterViewModel(
 
     fun onEmailChange(value: String) {
         _uiState.update { it.copy(email = value) }
+    }
+
+    fun onRoleChange(value: String) {
+        _uiState.update { it.copy(role = Role.valueOf(value)) }
+    }
+
+    fun onNameChange(value: String) {
+        _uiState.update { it.copy(name = value) }
     }
 
     fun onPasswordChange(value: String) {
@@ -46,11 +59,21 @@ class RegisterViewModel(
             }
 
             try {
-                supabase.auth.signUpWith(Email) {
+                val response = supabase.auth.signUpWith(Email) {
                     email = state.email
                     password = state.password
                 }
 
+                val userId = response?.id
+                if (userId != null){
+                    supabase.postgrest["Users"].insert(
+                        User(
+                            id = userId,
+                            name = state.name,
+                            role = state.role.toString()
+                        )
+                    )
+                }
                 _uiState.update { it.copy(error = null) }
                 onSuccess()
 

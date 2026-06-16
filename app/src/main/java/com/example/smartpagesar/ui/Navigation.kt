@@ -68,21 +68,19 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
                 factory = LoginViewModelFactory(app.supabase)
             )
 
-            val uiState by loginVm.uiState.collectAsStateWithLifecycle()
-
             LoginScreen(
                 viewModel = loginVm,
                 onLoginSuccess = { navController.navigate(NavRoute.HomeScreen) },
                 navController = navController
             )
         }
-        composable<NavRoute.ProfileScreen> {  }
+
         composable<NavRoute.RegisterScreen> {
             val registerVm: RegisterViewModel = viewModel(
                 factory = RegisterViewModelFactory(app.supabase)
             )
 
-            RegisterScreen(navController, registerVm) { navController.navigate(NavRoute.LoginScreen) }
+            RegisterScreen(navController, registerVm) { navController.navigate(NavRoute.HomeScreen) }
         }
         composable<NavRoute.ProfileScreen> {
 
