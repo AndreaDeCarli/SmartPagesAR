@@ -25,4 +25,6 @@
     <string name="geography_label">Geography</string>
     <string name="art_label">Art</string>
     <string name="chemistry_label">Chemistry</string>
+    <string name="no_books">There are no downloaded books</string>
+    <string name="download_books">Download new Books</string>
 </resources>

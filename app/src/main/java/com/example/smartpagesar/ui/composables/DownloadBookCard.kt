@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,13 +53,16 @@ import androidx.navigation.NavController
 import com.example.smartpagesar.R
 import com.example.smartpagesar.data.models.Book
 import com.example.smartpagesar.data.models.Subject
+import com.example.smartpagesar.ui.viewmodels.DownloadBooksViewModel
 
 @Composable
 fun DownloadBookCard(
     book: Book,
-    onDownload: () -> Unit
+    viewModel: DownloadBooksViewModel
 ){
     var showProgress by remember { mutableStateOf(false) }
+    var downloadProgress by remember { mutableFloatStateOf(0.0f) }
+
     Card(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
@@ -115,7 +119,7 @@ fun DownloadBookCard(
                 }
                 Row(modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.1F),
+                    .weight(0.2F),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -137,13 +141,13 @@ fun DownloadBookCard(
                         )
                     }
                 }
-                Row(modifier = Modifier.weight(0.5f), verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.weight(0.5F), verticalAlignment = Alignment.CenterVertically) {
                     if (showProgress){
                         LinearProgressIndicator(
                             modifier = Modifier
                                 .height(15.dp)
                                 .weight(0.80f),
-                            progress = { 0.1f },
+                            progress = { downloadProgress },
                             color = MaterialTheme.colorScheme.tertiary,
                             strokeCap = StrokeCap.Round,
                             gapSize = -10.dp
@@ -156,10 +160,11 @@ fun DownloadBookCard(
                         IconButton(
                             enabled = !showProgress,
                             onClick = {
-                                onDownload()
+                                viewModel.downloadBookWithModels(book.id, book.short_id, {progress -> downloadProgress = progress})
                                 showProgress = true
                                       },
-                            colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.onPrimaryContainer),
+                            colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.tertiary,
+                                contentColor = MaterialTheme.colorScheme.onTertiary),
                         ) {
                             Icon(Icons.Filled.Download, "download")
                         }
@@ -172,24 +177,24 @@ fun DownloadBookCard(
     }
 }
 
-@Preview
-@Composable
-fun DownloadBookCardPreview(){
-    val book1 = Book("gdag",0,"The Theory of Math", "Tom Cruz", "Math", 12, 2021 )
-    val book2 = Book("", 0,"The history of Us", "Micheal jardan", "History", 12, 2003)
-    val books = arrayOf(book1, book2)
-    val navController = NavController(LocalContext.current)
-    Scaffold(
-        topBar = {MainTopAppBar(navController, stringResource(R.string.books), true)},
-        bottomBar = { MainBottomAppBar(navController, 1)}
-    ) {innerPadding ->
-        LazyColumn(modifier = Modifier
-            .padding(innerPadding)
-            .padding(horizontal = 7.dp)) {
-            items(books){item ->
-                DownloadBookCard(item, {})
-            }
-        }
-
-    }
-}
+//@Preview
+//@Composable
+//fun DownloadBookCardPreview(){
+//    val book1 = Book("gdag",0,"The Theory of Math", "Tom Cruz", "Math", 12, 2021 )
+//    val book2 = Book("", 0,"The history of Us", "Micheal jardan", "History", 12, 2003)
+//    val books = arrayOf(book1, book2)
+//    val navController = NavController(LocalContext.current)
+//    Scaffold(
+//        topBar = {MainTopAppBar(navController, stringResource(R.string.books), true)},
+//        bottomBar = { MainBottomAppBar(navController, 1)}
+//    ) {innerPadding ->
+//        LazyColumn(modifier = Modifier
+//            .padding(innerPadding)
+//            .padding(horizontal = 7.dp)) {
+//            items(books){item ->
+//                DownloadBookCard(item, {})
+//            }
+//        }
+//
+//    }
+//}

@@ -47,7 +47,7 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { MainTopAppBar(navController, "Login", true, {}) }
+        topBar = { MainTopAppBar(navController, "Login", true) }
     ) {
         innerPadding -> Column(
         modifier = Modifier

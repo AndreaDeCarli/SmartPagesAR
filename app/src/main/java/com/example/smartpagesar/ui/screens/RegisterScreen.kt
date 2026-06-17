@@ -38,7 +38,7 @@ fun RegisterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     Scaffold(
-        topBar = { MainTopAppBar(navController, stringResource( R.string.register_title), true, {}) }
+        topBar = { MainTopAppBar(navController, stringResource( R.string.register_title), true) }
     ) {innerPadding ->
         Column(
             modifier = Modifier

@@ -24,6 +24,7 @@ import io.github.jan.supabase.gotrue.auth
 import kotlinx.serialization.Serializable
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.smartpagesar.data.models.Book
 import com.example.smartpagesar.data.models.User
 import com.example.smartpagesar.ui.screens.DownloadBooksScreen
 import com.example.smartpagesar.ui.screens.SettingsScreen
@@ -67,18 +68,23 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
         startDestination = NavRoute.HomeScreen
     ){
         composable<NavRoute.HomeScreen> {
+            var booksList: List<Book> = emptyList()
+            if (app.supabase.auth.currentSessionOrNull() !== null){
+                val vm: BooksViewModel = viewModel(
+                    factory = BooksViewModelFactory(app.supabase)
+                )
+                val books by vm.books.collectAsState()
+                booksList = books
+            }
 
-            val vm: BooksViewModel = viewModel(
-                factory = BooksViewModelFactory(app.supabase)
-            )
 
-            val books by vm.books.collectAsState()
 
             HomeScreen(
                 navController,
-                books,
+                booksList,
                 { navigateIfLoggedIn(NavRoute.LoginScreen, NavRoute.ProfileScreen) },
-                { navigateIfLoggedIn(NavRoute.HomeScreen,NavRoute.DownloadBooksScreen) }
+                { navigateIfLoggedIn(NavRoute.HomeScreen,NavRoute.DownloadBooksScreen) },
+                 app.supabase.auth.currentSessionOrNull() !== null
                 )
         }
 
@@ -125,7 +131,7 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
         }
         composable<NavRoute.DownloadBooksScreen> {
             val vm: DownloadBooksViewModel = viewModel(
-                factory = DownloadBooksViewModelFactory(app.supabase)
+                factory = DownloadBooksViewModelFactory(app.supabase, ctx)
             )
 
             val books by vm.books.collectAsState()

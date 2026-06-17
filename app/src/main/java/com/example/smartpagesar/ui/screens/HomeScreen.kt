@@ -21,10 +21,13 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,10 +48,13 @@ fun HomeScreen(
     navController: NavController,
     books: List<Book>,
     loginButtonAction: ()-> Unit,
-    floatingActionButtonAction: () -> Unit
+    floatingActionButtonAction: () -> Unit,
+    isUserLoggedIn: Boolean,
 ){
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    val snackbarHostState = remember { SnackbarHostState() }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -64,7 +70,10 @@ fun HomeScreen(
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.settings_title)) },
                     selected = false,
-                    onClick = { navController.navigate(NavRoute.SettingsScreen) },
+                    onClick = {
+                        navController.navigate(NavRoute.SettingsScreen)
+                        scope.launch { drawerState.close() }
+                              },
                     icon = { Icon(Icons.Filled.Settings, "settings") }
                 )
             }
@@ -73,21 +82,36 @@ fun HomeScreen(
         Scaffold(
             bottomBar = { MainBottomAppBar(navController, 1) },
             topBar = { MainTopAppBar(
-                navController,
-                stringResource(R.string.books),
-                false,
-                {IconButton(onClick = loginButtonAction ){ Icon(Icons.Filled.AccountCircle, "")  }},
-                { scope.launch{ drawerState.open() } }
+                navController = navController,
+                title = stringResource(R.string.books),
+                goBack = false,
+                menu = true,
+                action = {IconButton(onClick = loginButtonAction ){ Icon(Icons.Filled.AccountCircle, "")  }},
+                onMenuOpen = { scope.launch{ drawerState.open() } }
                 ) },
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = floatingActionButtonAction
+                    onClick = {
+                        if (isUserLoggedIn){
+                            floatingActionButtonAction()
+                        }else{
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Can't download books if not logged in")
+                            }
+                        }
+                    }
                 ) { Icon(Icons.Default.Download, "download") }
-            }
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) }
         ) {innerPadding ->
+
             LazyColumn(modifier = Modifier.padding(innerPadding).padding(horizontal = 7.dp)) {
-                items(books){item ->
-                    BookCard(item)
+                if (!books.isEmpty()){
+                    items(books){item ->
+                        BookCard(item)
+                    }
+                }else{
+                    item { Text(stringResource(R.string.no_books)) }
                 }
             }
         }

@@ -42,7 +42,7 @@ fun ProfileScreen(
 ){
 
     Scaffold(
-        topBar = { MainTopAppBar(navController, stringResource(R.string.profile_title), true, {}) }
+        topBar = { MainTopAppBar(navController, stringResource(R.string.profile_title), true) }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

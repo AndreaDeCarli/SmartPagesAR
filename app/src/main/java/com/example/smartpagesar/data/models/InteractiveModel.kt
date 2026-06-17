@@ -1,8 +1,11 @@
 package com.example.smartpagesar.data.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class InteractiveModel(
-    val bookId: String,
+    val book_id: String,
     val id: String,
-    val modelPath: String,
-    val imagePath: String
+    val model: String,
+    val image: String
 )

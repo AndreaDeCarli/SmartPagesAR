@@ -16,7 +16,7 @@ import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainTopAppBar(navController: NavController, title: String,  goBack: Boolean, action: @Composable (() -> Unit) = {}, onMenuOpen: () -> Unit = {}){
+fun MainTopAppBar(navController: NavController, title: String,  goBack: Boolean,menu: Boolean = false, action: @Composable (() -> Unit) = {}, onMenuOpen: () -> Unit = {}){
     TopAppBar(
         title = { Text(title) },
         navigationIcon = {
@@ -27,7 +27,8 @@ fun MainTopAppBar(navController: NavController, title: String,  goBack: Boolean,
                 }) {
                     Icon(Icons.Filled.ArrowBackIosNew, "Back")
                 }
-            }else {
+            }
+            else if(menu) {
                 IconButton(
                     onClick = onMenuOpen
                 ) {
