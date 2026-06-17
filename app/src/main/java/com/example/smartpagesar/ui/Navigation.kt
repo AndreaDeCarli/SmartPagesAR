@@ -1,11 +1,11 @@
 package com.example.smartpagesar.ui
 
+import android.app.Application
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
@@ -22,12 +22,11 @@ import com.example.smartpagesar.ui.viewmodels.RegisterViewModel
 import com.example.smartpagesar.ui.viewmodels.RegisterViewModelFactory
 import io.github.jan.supabase.gotrue.auth
 import kotlinx.serialization.Serializable
-import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.example.smartpagesar.data.models.Book
-import com.example.smartpagesar.data.models.User
 import com.example.smartpagesar.ui.screens.DownloadBooksScreen
 import com.example.smartpagesar.ui.screens.SettingsScreen
+import com.example.smartpagesar.ui.viewmodels.ARScreenViewModel
+import com.example.smartpagesar.ui.viewmodels.ARScreenViewModelFactory
 import com.example.smartpagesar.ui.viewmodels.BooksViewModel
 import com.example.smartpagesar.ui.viewmodels.BooksViewModelFactory
 import com.example.smartpagesar.ui.viewmodels.DownloadBooksViewModel
@@ -36,8 +35,6 @@ import com.example.smartpagesar.ui.viewmodels.ProfileViewModel
 import com.example.smartpagesar.ui.viewmodels.ProfileViewModelFactory
 import com.example.smartpagesar.ui.viewmodels.SettingsState
 import com.example.smartpagesar.ui.viewmodels.SettingsViewModel
-import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 
 sealed interface NavRoute{
     @Serializable data object HomeScreen : NavRoute
@@ -89,7 +86,12 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
         }
 
         composable<NavRoute.ARScreen> {
-            ARScreen(navController)
+
+            val arViewModel: ARScreenViewModel = viewModel(
+                factory = ARScreenViewModelFactory(LocalContext.current.applicationContext as Application)
+            )
+
+            ARScreen(navController, arViewModel)
         }
         composable<NavRoute.LoginScreen> {
             val loginVm: LoginViewModel = viewModel(
