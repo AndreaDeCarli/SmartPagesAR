@@ -1,5 +1,6 @@
 package com.example.smartpagesar.ui.viewmodels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -13,6 +14,7 @@ import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 
 class BooksViewModel(
     private val supabase: SupabaseClient
@@ -61,6 +63,49 @@ class BooksViewModel(
             }
         }
     }
+
+    fun deleteDownloadedBook(book: Book, context: Context) {
+        viewModelScope.launch {
+            try {
+                val userId = supabase.auth.currentUserOrNull()?.id ?: return@launch
+                val shortId = book.short_id
+                val folderName = "book$shortId"
+
+                // 1️⃣ Elimina riga da user_book
+                supabase.postgrest["user_book"]
+                    .delete {
+                        filter {
+                            eq("user_id", userId)
+                            eq("book_id", book.id)
+                        }
+                    }
+
+                // 2️⃣ Elimina cartella locale: files/book{short_id}
+                val bookFolder = File(context.filesDir, folderName)
+                if (bookFolder.exists()) {
+                    bookFolder.deleteRecursively()
+                }
+
+                // 3️⃣ Elimina immagini locali che iniziano con "book{short_id}-"
+                val filesDir = context.filesDir
+                filesDir.listFiles()?.forEach { file ->
+                    val name = file.name
+                    val parts = name.split("-")
+
+                    if (parts.isNotEmpty() && parts[0] == folderName) {
+                        file.delete()
+                    }
+                }
+
+                // 4️⃣ Aggiorna lista libri scaricati
+                loadDownloadedBooks()
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 }
 
 class BooksViewModelFactory(

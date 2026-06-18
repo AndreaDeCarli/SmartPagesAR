@@ -54,6 +54,9 @@ class ARScreenViewModel(
             trackingMethod = image.trackingMethod
         )
     }
+    fun resetImage(){
+        _recognizedImage.value = null
+    }
 }
 
 data class RecognizedImageData(
