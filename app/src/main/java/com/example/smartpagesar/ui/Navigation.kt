@@ -4,12 +4,15 @@ import android.app.Application
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.toRoute
 import com.example.smartpagesar.SmartPagesARApplication
 import com.example.smartpagesar.ui.screens.ARScreen
 import com.example.smartpagesar.ui.screens.HomeScreen
@@ -23,10 +26,13 @@ import com.example.smartpagesar.ui.viewmodels.RegisterViewModelFactory
 import io.github.jan.supabase.gotrue.auth
 import kotlinx.serialization.Serializable
 import com.example.smartpagesar.data.models.Book
+import com.example.smartpagesar.ui.screens.BookDetailScreen
 import com.example.smartpagesar.ui.screens.DownloadBooksScreen
 import com.example.smartpagesar.ui.screens.SettingsScreen
 import com.example.smartpagesar.ui.viewmodels.ARScreenViewModel
 import com.example.smartpagesar.ui.viewmodels.ARScreenViewModelFactory
+import com.example.smartpagesar.ui.viewmodels.BookDetailViewModel
+import com.example.smartpagesar.ui.viewmodels.BookDetailViewModelFactory
 import com.example.smartpagesar.ui.viewmodels.BooksViewModel
 import com.example.smartpagesar.ui.viewmodels.BooksViewModelFactory
 import com.example.smartpagesar.ui.viewmodels.DownloadBooksViewModel
@@ -44,19 +50,21 @@ sealed interface NavRoute{
     @Serializable data object RegisterScreen: NavRoute
     @Serializable data object SettingsScreen: NavRoute
     @Serializable data object DownloadBooksScreen: NavRoute
+    @Serializable data class BookDetailScreen(val bookId: String): NavRoute
 }
 
 @Composable
 fun SmartPagesARNavGraph(navController: NavHostController, settingsState: SettingsState, settingsViewModel: SettingsViewModel){
     val ctx = LocalContext.current
     val app = ctx.applicationContext as SmartPagesARApplication
+    val loggedIn by remember { mutableStateOf(app.supabase.auth.currentSessionOrNull() !== null) }
     val scope = rememberCoroutineScope()
 
     fun navigateIfLoggedIn(route: NavRoute, otherRoute: NavRoute){
-        if (app.supabase.auth.currentSessionOrNull() === null) {
-            navController.navigate(route)
-        }else{
+        if (loggedIn) {
             navController.navigate(otherRoute)
+        }else{
+            navController.navigate(route)
         }
     }
 
@@ -65,23 +73,19 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
         startDestination = NavRoute.HomeScreen
     ){
         composable<NavRoute.HomeScreen> {
-            var booksList: List<Book> = emptyList()
-            if (app.supabase.auth.currentSessionOrNull() !== null){
-                val vm: BooksViewModel = viewModel(
-                    factory = BooksViewModelFactory(app.supabase)
-                )
-                val books by vm.books.collectAsState()
-                booksList = books
-            }
 
-
+            val vm: BooksViewModel = viewModel(
+                factory = BooksViewModelFactory(app.supabase)
+            )
+            val books by vm.books.collectAsState()
 
             HomeScreen(
                 navController,
-                booksList,
+                books,
                 { navigateIfLoggedIn(NavRoute.LoginScreen, NavRoute.ProfileScreen) },
                 { navigateIfLoggedIn(NavRoute.HomeScreen,NavRoute.DownloadBooksScreen) },
-                 app.supabase.auth.currentSessionOrNull() !== null
+                 loggedIn,
+                {book -> vm.deleteDownloadedBook(book, ctx)}
                 )
         }
 
@@ -139,6 +143,22 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
             val books by vm.books.collectAsState()
             DownloadBooksScreen(navController, vm, books)
         }
+        composable<NavRoute.BookDetailScreen> { backStackEntry ->
+            val route = backStackEntry.toRoute<NavRoute.BookDetailScreen>()
+
+
+            val vm: BookDetailViewModel = viewModel(
+                factory = BookDetailViewModelFactory(app.supabase, route.bookId)
+            )
+
+            val models by vm.models.collectAsState()
+            val book by vm.book.collectAsState()
+
+            BookDetailScreen(navController,book, models)
+
+        }
+
+
     }
 }
 

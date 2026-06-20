@@ -46,26 +46,6 @@ class DownloadBooksViewModel(
         }
     }
 
-    fun markBookAsDownloaded(bookId: String) {
-        viewModelScope.launch {
-            try {
-                val userId = supabase.auth.currentSessionOrNull()?.user?.id ?: return@launch
-
-                supabase.postgrest["user_book"].insert(
-                    mapOf(
-                        "user_id" to userId,
-                        "book_id" to bookId
-                    )
-                )
-
-                Log.d("DownloadBooksVM", "Book $bookId marked as downloaded")
-
-            } catch (e: Exception) {
-                Log.e("DownloadBooksVM", "Error marking book downloaded", e)
-            }
-        }
-    }
-
     fun downloadBookWithModels(bookId: String, shortId: Int, onProgress: (Float)-> Unit) {
         viewModelScope.launch {
 
@@ -83,7 +63,7 @@ class DownloadBooksViewModel(
                 // Download model file
                 val modelBytes = supabase.storage
                     .from("ModelsImages")
-                    .downloadPublic(model.model)
+                    .downloadPublic("book${shortId}-${model.id}-${model.type}.glb")
 
                 val modelLocalPath = saveToInternalStorage(
                     fileName = "${model.id}.glb",
@@ -94,10 +74,10 @@ class DownloadBooksViewModel(
                 // Download image file
                 val imageBytes = supabase.storage
                     .from("ModelsImages")
-                    .downloadPublic(model.image)
+                    .downloadPublic("book${shortId}-${model.id}-${model.type}.png")
 
                 val imageLocalPath = saveToInternalStorage(
-                    fileName = model.image,
+                    fileName = "book${shortId}-${model.id}-${model.type}.png",
                     bytes = imageBytes,
                     folderName = "images"
                 )

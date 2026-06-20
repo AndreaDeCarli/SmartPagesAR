@@ -6,6 +6,5 @@ import kotlinx.serialization.Serializable
 data class InteractiveModel(
     val book_id: String,
     val id: String,
-    val model: String,
-    val image: String
+    val type: Int
 )

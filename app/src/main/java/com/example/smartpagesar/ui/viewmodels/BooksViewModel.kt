@@ -87,7 +87,7 @@ class BooksViewModel(
                 }
 
                 // 3️⃣ Elimina immagini locali che iniziano con "book{short_id}-"
-                val filesDir = context.filesDir
+                val filesDir = File(context.filesDir, "images")
                 filesDir.listFiles()?.forEach { file ->
                     val name = file.name
                     val parts = name.split("-")

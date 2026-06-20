@@ -141,28 +141,39 @@ fun DownloadBookCard(
                         )
                     }
                 }
-                Row(modifier = Modifier.weight(0.5F), verticalAlignment = Alignment.CenterVertically) {
-                    if (showProgress){
-                        LinearProgressIndicator(
-                            modifier = Modifier
-                                .height(15.dp)
-                                .weight(0.80f),
-                            progress = { downloadProgress },
-                            color = MaterialTheme.colorScheme.tertiary,
-                            strokeCap = StrokeCap.Round,
-                            gapSize = -10.dp
-                        )
-                    }else{
-                        Spacer(modifier = Modifier.weight(0.8f))
+                Row(modifier = Modifier.weight(0.5F)) {
+                    Column(modifier = Modifier.weight(0.8F), horizontalAlignment = Alignment.Start) {
+                        if (showProgress) {
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                Text("In download: ${(downloadProgress * 100).toInt()}%")
+                            }
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                LinearProgressIndicator(
+                                    modifier = Modifier
+                                        .height(15.dp),
+                                    progress = { downloadProgress },
+                                    color = MaterialTheme.colorScheme.tertiary,
+                                    strokeCap = StrokeCap.Round,
+                                    gapSize = -10.dp
+                                )
+                            }
+
+                        }else{
+                            Spacer(modifier = Modifier.weight(0.8f))
+                        }
                     }
 
                     Box(modifier = Modifier.weight(0.20F)){
                         IconButton(
                             enabled = !showProgress,
                             onClick = {
-                                viewModel.downloadBookWithModels(book.id, book.short_id, {progress -> downloadProgress = progress})
+                                viewModel.downloadBookWithModels(book.id, book.short_id, {
+                                        progress -> while (downloadProgress <= progress){
+                                    downloadProgress += 0.01f
+                                }
+                                })
                                 showProgress = true
-                                      },
+                            },
                             colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.tertiary,
                                 contentColor = MaterialTheme.colorScheme.onTertiary),
                         ) {
@@ -170,9 +181,7 @@ fun DownloadBookCard(
                         }
                     }
                 }
-
             }
-
         }
     }
 }

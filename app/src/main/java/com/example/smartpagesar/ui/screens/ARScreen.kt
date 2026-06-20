@@ -1,6 +1,7 @@
 package com.example.smartpagesar.ui.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
@@ -38,9 +40,17 @@ import io.github.sceneview.math.Rotation
 import io.github.sceneview.math.Position
 import io.github.sceneview.node.ModelNode
 import io.github.sceneview.rememberModelInstance
+import com.example.smartpagesar.R
+import com.google.android.filament.Box
+import io.github.sceneview.geometries.BoundingBox
+import io.github.sceneview.math.Scale
+import io.github.sceneview.model.ModelInstance
+import io.github.sceneview.rememberEngine
+import io.github.sceneview.rememberModelLoader
 import java.io.File
 import java.nio.ByteBuffer
 
+@SuppressLint("RememberReturnType")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ARScreen(
@@ -51,12 +61,20 @@ fun ARScreen(
     val recognized by viewModel.recognizedImage.collectAsState()
 
     var rotation by remember { mutableFloatStateOf(0.0f) }
+    var scale by remember { mutableFloatStateOf(0.07f) }
     var autoRotate by remember { mutableStateOf(false) }
 
     var anchor by remember { mutableStateOf<Anchor?>(null) }
+    var hasAnchored by remember { mutableStateOf(false) }
 
     // Track whether we are actively scanning (True) or locked (False)
     var isScanning by remember { mutableStateOf(true) }
+    var loadedModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
+
+
+    val engine = rememberEngine()
+    val modelLoader = rememberModelLoader(engine)
+
 
     // Standard camera permission flow...
     var hasCameraPermission by remember {
@@ -73,6 +91,24 @@ fun ARScreen(
         return
     }
 
+    LaunchedEffect(recognized) {
+        val currentRecognized = recognized
+        if (currentRecognized != null) {
+            val localFile = File(context.filesDir, "${currentRecognized.folder}/${currentRecognized.model}.glb")
+            if (localFile.exists()) {
+                // Perform heavy disk reading asynchronously on a background thread pool
+                val fileBytes = localFile.readBytes()
+                val buffer = ByteBuffer.wrap(fileBytes)
+
+                // Instantiate the structural 3D data once and cache it in our state hook
+                loadedModelInstance = modelLoader.createModelInstance(buffer)
+            }
+        } else {
+            // Clear out cache memory when tracking is reset
+            loadedModelInstance = null
+        }
+    }
+
     Scaffold(
         bottomBar = { MainBottomAppBar(navController, 2) }
     ) { innerPadding ->
@@ -81,25 +117,42 @@ fun ARScreen(
             .fillMaxSize()) {
 
             ARSceneView(
+                engine = engine,
+                modelLoader = modelLoader,
                 modifier = Modifier.fillMaxSize(),
                 planeRenderer = false,
                 onSessionCreated = { session ->
                     val config = session.config
-                    config.focusMode = Config.FocusMode.AUTO
-
+                    config.focusMode = Config.FocusMode.FIXED
+                    if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)){
+                        config.depthMode = Config.DepthMode.AUTOMATIC
+                    }
+                    try {
+                        // Filter for a stable frame rate, but avoid overwhelming resolutions
+                        val filter = com.google.ar.core.CameraConfigFilter(session).apply {
+                            targetFps = java.util.EnumSet.of(com.google.ar.core.CameraConfig.TargetFps.TARGET_FPS_30)
+                        }
+                        val configs = session.getSupportedCameraConfigs(filter)
+                        if (configs.isNotEmpty()) {
+                            // OPTIMIZATION: Pick a mid-to-low resolution instead of the absolute maximum!
+                            val optimizedConfig = configs.minByOrNull { it.imageSize.width * it.imageSize.height }
+                            if (optimizedConfig != null) {
+                                session.cameraConfig = optimizedConfig
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // Fallback
+                    }
                     config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
                     config.augmentedImageDatabase = viewModel.buildAugmentedImageDatabase(session)
                     session.configure(config)
                 },
                 onSessionUpdated = { session, frame ->
-                    // 1. ONLY process tracking if the user is actively scanning
                     if (autoRotate){
                         rotation += 0.5f
-                        if (rotation >= 360f){
-                            rotation = 0.0f
-                        }
+                        if (rotation >= 360f){ rotation = 0.0f }
                     }
-                    if (isScanning) {
+                    if (isScanning && !hasAnchored) {
                         val updatedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
                         for (augImage in updatedImages) {
                             if (augImage.trackingState == TrackingState.TRACKING &&
@@ -107,11 +160,13 @@ fun ARScreen(
                             ) {
                                 viewModel.onImageRecognized(augImage)
 
-                                // Create the world anchor to lock it to the room physics
+                                // 2. CRITICAL CHANGE: Create a generic Session World Anchor from the pose coordinates
+                                // instead of creating an image-linked trackable anchor (augImage.createAnchor).
+                                // This creates a rigid point locked to the room's global physics matrix.
                                 anchor = session.createAnchor(augImage.centerPose)
 
-                                // 2. Flip the state to false immediately!
-                                // This turns off scanning and locks everything down.
+                                // Freeze updates instantly
+                                hasAnchored = true
                                 isScanning = false
                                 break
                             }
@@ -123,20 +178,41 @@ fun ARScreen(
                 val currentRecognized = recognized
 
                 if (currentAnchor != null && currentRecognized != null) {
-                    AnchorNode(anchor = currentAnchor) {
-                        val localFile = File(context.filesDir, "${currentRecognized.folder}/${currentRecognized.model}.glb")
-                        if (localFile.exists()) {
-                            val fileBytes = remember(localFile) { localFile.readBytes() }
-                            val modelInstance = remember(fileBytes) {
-                                val buffer = ByteBuffer.wrap(fileBytes)
-                                modelLoader.createModelInstance(buffer)
+                    AnchorNode(anchor = currentAnchor, updateAnchorPose = false) {
+
+                        rememberModelInstance(modelLoader, "models/platform.glb")?.let { platformInstance ->
+
+                            // Cache the platform's layout parameters cleanly
+                            val platformHeight = remember(platformInstance) {
+                                getTrueHeight(platformInstance.asset.boundingBox, 0.10f)
                             }
+
+                            // 1. Render the Base Platform Node
                             ModelNode(
-                                modelInstance = modelInstance,
-                                scaleToUnits = 0.2f,
-                                rotation = Rotation(0.0f,rotation,0.0f),
+                                modelInstance = platformInstance,
+                                scaleToUnits = 0.10f,
                                 centerOrigin = Position(0f, 0f, 0f)
                             )
+
+                            // 2. Load the dynamic sub-model asset
+
+                            if (loadedModelInstance != null) {
+                                val boundingBoxHeight = loadedModelInstance?.asset?.boundingBox?.halfExtent[1]
+                                // 4. Correctly nest the character node directly within the platform's hierarchy slot
+                                ModelNode(
+                                    modelInstance = loadedModelInstance!!,
+                                    scaleToUnits = null,
+                                    scale = Scale(scale),
+                                    rotation = Rotation(0.0f, rotation, 0.0f),
+                                    autoAnimate = false,
+                                    // Keeps feet planted firmly on top of the platform regardless of current size scaling
+                                    position = Position(
+                                        0.0f,
+                                        platformHeight + boundingBoxHeight!! * scale,
+                                        0.0f
+                                    )
+                                )
+                            }
                         }
                     }
                 }
@@ -150,6 +226,7 @@ fun ARScreen(
                         // Reset button: Clear old anchors and flip scanning back on
                         anchor = null
                         isScanning = true
+                        hasAnchored = false
                     }
                 },
                 modifier = Modifier
@@ -173,7 +250,7 @@ fun ARScreen(
                         .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
                         .padding(10.dp)
                 ) {
-                    Text("Riconosciuta immagine:", color = Color.White)
+                    Text(stringResource(R.string.recognized_image), color = Color.White)
                     Text("Model: ${data.model}", color = Color.White)
                 }
                 Column(modifier = Modifier
@@ -183,7 +260,8 @@ fun ARScreen(
                         0 -> {
                             Row(modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(10.dp)) {
+                                .padding(10.dp)
+                            ) {
 
                                 FilledIconToggleButton(
                                     modifier = Modifier.padding(10.dp),
@@ -199,10 +277,32 @@ fun ARScreen(
                                     valueRange = 0f..360f,
                                 )
                             }
+                            Row(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp)
+                            ) {
+                                Slider(
+                                    modifier = Modifier.padding(10.dp),
+                                    value = scale,
+                                    onValueChange = {value -> scale = value},
+                                    valueRange = 0.01f..0.1f,
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     }
+}
+
+fun getTrueHeight(boundingBox: Box, scaleFactor: Float): Float{
+    val px = boundingBox.halfExtent[0]
+    val py = boundingBox.halfExtent[1]
+    val pz = boundingBox.halfExtent[2]
+    // Find the largest raw dimension
+    val rawMaxDimension = maxOf(px, maxOf(py, pz))
+    val rawHalfHeight = boundingBox.halfExtent[1]
+    val scaleFactor = scaleFactor / (rawMaxDimension * 2f)
+    return (rawHalfHeight * 2f) * scaleFactor
 }

@@ -55,10 +55,14 @@ import com.example.smartpagesar.data.models.Subject
 
 @Composable
 fun BookCard(
-    book: Book
+    book: Book,
+    onDelete: () -> Unit,
+    onClick: (String) -> Unit
 ){
     var expanded by remember { mutableStateOf(false) }
+    var showAlert by remember { mutableStateOf(false) }
     Card(
+        onClick = { onClick(book.id) },
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
         ),
@@ -98,7 +102,9 @@ fun BookCard(
                     .weight(0.65F)
                     .padding(horizontal = 10.dp)
             ) {
-                Row(modifier = Modifier.fillMaxWidth().weight(0.4F),
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.4F),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -110,7 +116,9 @@ fun BookCard(
                     )
 
                 }
-                Row(modifier = Modifier.fillMaxWidth().weight(0.2F),
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.2F),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -143,7 +151,9 @@ fun BookCard(
                     )
                 }
             }
-            Box(modifier = Modifier.fillMaxSize().weight(0.1F)){
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .weight(0.1F)){
                 IconButton(
                     onClick = { expanded = !expanded },
                     colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.secondary),
@@ -157,33 +167,29 @@ fun BookCard(
                             leadingIcon = { Icon(Icons.Default.Delete, "delete") },
                             text = { Text(stringResource(R.string.remove_generic)) },
                             onClick = {
+                                showAlert = true
                                 expanded = false
                             }
                         )
                     }
                 }
-
+            }
+            if (showAlert){
+                GenericAlertDialog(
+                    title = "Delete Book",
+                    text = "Are you sure you want to delete this book and all its models and images?",
+                    confirmText = "Confirm",
+                    confirmAction = {
+                        onDelete()
+                        showAlert = false
+                                    },
+                    dismissText = "Cancel",
+                    dismissAction = { showAlert = false },
+                    onDismissRequest = { showAlert = false },
+                    icon = Icons.Default.Delete
+                )
             }
         }
     }
 }
 
-@Preview
-@Composable
-fun BookCardPreview(){
-    val book1 = Book("gdag",0,"The Theory of Math", "Tom Cruz", "Math", 12, 2021 )
-    val book2 = Book("", 0,"The history of Us", "Micheal jardan", "History", 12, 2003)
-    val books = arrayOf(book1, book2)
-    val navController = NavController(LocalContext.current)
-    Scaffold(
-        topBar = {MainTopAppBar(navController, stringResource(R.string.books), true)},
-        bottomBar = { MainBottomAppBar(navController, 1)}
-    ) {innerPadding ->
-        LazyColumn(modifier = Modifier.padding(innerPadding).padding(horizontal = 7.dp)) {
-            items(books){item ->
-                BookCard(item)
-            }
-        }
-
-    }
-}

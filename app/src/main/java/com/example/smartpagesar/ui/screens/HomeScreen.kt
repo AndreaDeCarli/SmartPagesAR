@@ -50,6 +50,7 @@ fun HomeScreen(
     loginButtonAction: ()-> Unit,
     floatingActionButtonAction: () -> Unit,
     isUserLoggedIn: Boolean,
+    onDelete: (Book)->Unit
 ){
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -105,10 +106,12 @@ fun HomeScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) {innerPadding ->
 
-            LazyColumn(modifier = Modifier.padding(innerPadding).padding(horizontal = 7.dp)) {
+            LazyColumn(modifier = Modifier
+                .padding(innerPadding)
+                .padding(horizontal = 7.dp)) {
                 if (!books.isEmpty()){
                     items(books){item ->
-                        BookCard(item)
+                        BookCard(item, { onDelete(item) }, { id -> navController.navigate( NavRoute.BookDetailScreen(id)) })
                     }
                 }else{
                     item { Text(stringResource(R.string.no_books)) }

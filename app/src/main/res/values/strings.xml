@@ -27,4 +27,5 @@
     <string name="chemistry_label">Chemistry</string>
     <string name="no_books">There are no downloaded books</string>
     <string name="download_books">Download new Books</string>
+    <string name="recognized_image">Image Recognized</string>
 </resources>
