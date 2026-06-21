@@ -2,6 +2,7 @@ package com.example.smartpagesar.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.PointF
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,10 +50,17 @@ import io.github.sceneview.rememberOnGestureListener
 import io.github.sceneview.model.model
 import android.os.Handler
 import android.os.Looper
+import androidx.compose.material3.HorizontalDivider
 import androidx.core.graphics.blue
+import dev.romainguy.kotlin.math.Float2
 import io.github.sceneview.managers.getParentOrNull
 import java.io.File
 import java.nio.ByteBuffer
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.unit.sp
+import com.example.smartpagesar.data.models.NodeExtras
+import kotlinx.serialization.json.Json
+import kotlin.math.abs
 
 
 @Composable
@@ -76,6 +84,7 @@ fun ARScreen(
 
     var nodeSelected by remember { mutableStateOf<Node?>(null) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
+    var labelScreenPosition by remember { mutableStateOf<PointF?>(null) }
 
     val engine = rememberEngine()
     val modelLoader = rememberModelLoader(engine)
@@ -177,6 +186,33 @@ fun ARScreen(
                             }
                         }
                     }
+                    val selected = nodeSelected
+                    if (selected != null) {
+                        val worldPos = selected.worldPosition
+                        val rawViewPos = cameraNode.worldToView(worldPos)
+
+                        val viewport = view.viewport
+                        val viewWidth = viewport.width.toFloat()
+                        val viewHeight = viewport.height.toFloat()
+
+                        val screenX: Float
+                        val screenY: Float
+
+                        if (abs(rawViewPos.x) <= 2.0f && abs(rawViewPos.y) <= 2.0f) {
+                            screenX = (rawViewPos.x) * viewWidth
+
+                            screenY = (1.0f - rawViewPos.y) * viewHeight
+                        } else {
+
+                            screenX = rawViewPos.x
+                            screenY = rawViewPos.y
+                        }
+
+
+                        labelScreenPosition = PointF(screenX, screenY)
+                    } else {
+                        labelScreenPosition = null
+                    }
                 }
             ) {
                 val currentAnchor = anchor
@@ -203,62 +239,72 @@ fun ARScreen(
                             )
 
 
+                            key(loadedModelInstance) {
+                                if (loadedModelInstance != null) {
+                                    val boundingBoxHeight = loadedModelInstance?.asset?.boundingBox?.halfExtent[1]
 
-                            if (loadedModelInstance != null) {
-                                val boundingBoxHeight = loadedModelInstance?.asset?.boundingBox?.halfExtent[1]
+                                    ModelNode(
+                                        modelInstance = loadedModelInstance!!,
+                                        scaleToUnits = null,
+                                        scale = Scale(scale),
+                                        rotation = Rotation(0.0f, rotation, 0.0f),
+                                        autoAnimate = false,
+                                        position = Position(
+                                            0.0f,
+                                            platformHeight + boundingBoxHeight!! * scale,
+                                            0.0f
+                                        ),
+                                        apply = {
+                                            if (recognized?.let { image -> image.type.toInt() == 2 }?: false){
 
-                                ModelNode(
-                                    modelInstance = loadedModelInstance!!,
-                                    scaleToUnits = null,
-                                    scale = Scale(scale),
-                                    rotation = Rotation(0.0f, rotation, 0.0f),
-                                    autoAnimate = false,
-                                    position = Position(
-                                        0.0f,
-                                        platformHeight + boundingBoxHeight!! * scale,
-                                        0.0f
-                                    ),
-                                    apply = {
+                                                this.onSingleTapConfirmed = { e ->
+                                                    view.pick(e.x.toInt(), view.viewport.height - e.y.toInt(), mainHandler) { result ->
+                                                        val hitEntity = result.renderable
+                                                        if (hitEntity != 0) {
+                                                            var current = hitEntity
+                                                            // Find the first parent with a name in the glTF hierarchy
+                                                            while (current != 0 && model.getName(current).isNullOrEmpty()) {
+                                                                current = engine.transformManager.getParentOrNull(current) ?: 0
+                                                            }
+                                                            val tappedNode = nodes.find { it.entity == current } ?: nodes.find { it.entity == hitEntity }
 
-                                        // Auto-select root on load if nothing selected
-                                        if (nodeSelected == null) nodeSelected = this
+                                                            val rm = engine.renderableManager
 
-                                        this.onSingleTapConfirmed = { e ->
-                                            view.pick(e.x.toInt(), view.viewport.height - e.y.toInt(), mainHandler) { result ->
-                                                val hitEntity = result.renderable
-                                                if (hitEntity != 0) {
-                                                    var current = hitEntity
-                                                    // Find the first parent with a name in the glTF hierarchy
-                                                    while (current != 0 && model.getName(current).isNullOrEmpty()) {
-                                                        current = engine.transformManager.getParentOrNull(current) ?: 0
-                                                    }
-                                                    val tappedNode = nodes.find { it.entity == current } ?: nodes.find { it.entity == hitEntity }
+                                                            // --- RESET PREVIOUS SELECTION ---
+                                                            nodeSelected?.let { prev ->
+                                                                val prevInstance = rm.getInstance(prev.entity)
+                                                                if (prevInstance != 0) {
+                                                                    val prevMat = rm.getMaterialInstanceAt(prevInstance, 0)
 
-                                                    val rm = engine.renderableManager
+                                                                    // FIX: Pass as FloatElement.FLOAT3 array instead of separate floats
+                                                                    prevMat.setParameter(
+                                                                        "emissiveFactor",0.0f, 0.0f, 0.0f // Turn off the glow
+                                                                    )
+                                                                }
+                                                            }
 
-                                                    nodeSelected?.let { prev ->
-                                                        val prevInstance = rm.getInstance(prev.entity)
-                                                        if (prevInstance != 0) {
-                                                            val prevMat = rm.getMaterialInstanceAt(prevInstance, 0)
-                                                            prevMat.setParameter("emissiveFactor", 0f, 0f, 0f)
+                                                            // --- HIGHLIGHT NEW SELECTION ---
+                                                            val instance = rm.getInstance(tappedNode?.entity ?: 0)
+                                                            if (instance != 0) {
+                                                                val mat = rm.getMaterialInstanceAt(instance, 0)
+
+                                                                // FIX: Force packed Float3 vector layout for the orange glow
+                                                                mat.setParameter(
+                                                                    "emissiveFactor",1.0f, 0.5f, 0.0f // Distinct orange glow
+                                                                )
+                                                            }
+
+                                                            nodeSelected = tappedNode
                                                         }
                                                     }
-
-                                                    val instance = rm.getInstance(tappedNode?.entity
-                                                        ?: 0)
-                                                    if (instance != 0) {
-                                                        val mat = rm.getMaterialInstanceAt(instance, 0)
-                                                        mat.setParameter("emissiveFactor", 1f, 0.5f, 0f) // orange glow
-                                                    }
-
-                                                    nodeSelected = tappedNode
+                                                    true
                                                 }
                                             }
-                                            true
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             }
+
                         }
                     }
                 }
@@ -271,8 +317,13 @@ fun ARScreen(
                         viewModel.resetImage()
                         nodeSelected = null
                         anchor = null
+                        loadedModelInstance = null
                         isScanning = true
                         hasAnchored = false
+                        scale = 0.04f
+                        rotation = 0.0f
+                        autoRotate = false
+                        labelScreenPosition = null
                     }
                 },
                 modifier = Modifier
@@ -298,16 +349,12 @@ fun ARScreen(
                 ) {
                     Text(stringResource(R.string.recognized_image), color = Color.White)
                     Text("Model: ${data.model}", color = Color.White)
-                    nodeSelected?.let {
-                        val nodeName = (it as? ModelNode.ChildNode)?.extras ?: "Root"
-                        Text("Selected: $nodeName", color = Color.Yellow)
-                    }
                 }
-                Column(modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth() ) {
-                    when (data.type.toInt()){
-                        0 -> {
+                when (data.type.toInt()){
+                    0 -> {
+                        Column(modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth() ) {
                             Row(modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(10.dp)
@@ -347,12 +394,61 @@ fun ARScreen(
                                 )
                             }
                         }
-                        2 -> {}
+                    }
+                    2 -> {
+                        labelScreenPosition?.let { point ->
+
+                            val nodeInfo = parseNodeExtras((nodeSelected as? ModelNode.ChildNode)?.extras)
+
+                            val density = LocalResources.current.displayMetrics.density
+
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                Box(
+                                    modifier = Modifier.width(200.dp)
+                                        .offset(
+                                            x = (point.x / density).dp,
+                                            y = (point.y / density).dp
+                                        )
+                                        // This ensures the pinpoint hits the center of the text box, not the top-left edge
+                                        .wrapContentSize(Alignment.Center)
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .background(Color.Black.copy(alpha = 0.8f), RoundedCornerShape(4.dp))
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        val description = nodeInfo?.description ?: "Selected Component"
+                                        val labelTitle = (nodeSelected as? ModelNode.ChildNode)?.name ?: "label"
+                                        Text(labelTitle, fontSize = 20.sp, color = Color.White)
+                                        HorizontalDivider()
+                                        Text(
+                                            text = description,
+                                            fontSize = 16.sp,
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
+}
+
+val gltfJsonDecoder = Json {
+    ignoreUnknownKeys = true // Prevents crashes if Blender exports extra metadata you don't care about
+    coerceInputValues = true // Falls back to your data class defaults if something is null in JSON
+}
+
+fun parseNodeExtras(rawExtras: String?): NodeExtras? {
+    if (rawExtras.isNullOrEmpty()) return null
+
+    return runCatching {
+        gltfJsonDecoder.decodeFromString<NodeExtras>(rawExtras)
+    }.getOrNull() // Returns null safely if the string wasn't valid JSON
 }
 
 fun getTrueHeight(boundingBox: Box, scaleFactor: Float): Float{
