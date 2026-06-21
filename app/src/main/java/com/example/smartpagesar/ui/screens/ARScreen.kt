@@ -50,8 +50,7 @@ import io.github.sceneview.rememberModelLoader
 import java.io.File
 import java.nio.ByteBuffer
 
-@SuppressLint("RememberReturnType")
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun ARScreen(
     navController: NavController,
@@ -61,7 +60,7 @@ fun ARScreen(
     val recognized by viewModel.recognizedImage.collectAsState()
 
     var rotation by remember { mutableFloatStateOf(0.0f) }
-    var scale by remember { mutableFloatStateOf(0.07f) }
+    var scale by remember { mutableFloatStateOf(0.04f) }
     var autoRotate by remember { mutableStateOf(false) }
 
     var anchor by remember { mutableStateOf<Anchor?>(null) }
@@ -198,6 +197,7 @@ fun ARScreen(
 
                             if (loadedModelInstance != null) {
                                 val boundingBoxHeight = loadedModelInstance?.asset?.boundingBox?.halfExtent[1]
+
                                 // 4. Correctly nest the character node directly within the platform's hierarchy slot
                                 ModelNode(
                                     modelInstance = loadedModelInstance!!,
@@ -285,7 +285,7 @@ fun ARScreen(
                                     modifier = Modifier.padding(10.dp),
                                     value = scale,
                                     onValueChange = {value -> scale = value},
-                                    valueRange = 0.01f..0.1f,
+                                    valueRange = 0.01f..0.06f,
                                 )
                             }
                         }

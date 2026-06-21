@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.example.smartpagesar.R
 import com.example.smartpagesar.data.models.Book
 import com.example.smartpagesar.data.models.Subject
@@ -57,10 +59,18 @@ import com.example.smartpagesar.data.models.Subject
 fun BookCard(
     book: Book,
     onDelete: () -> Unit,
-    onClick: (String) -> Unit
+    onClick: (String) -> Unit,
+    onLoadImage: (String) -> String
 ){
     var expanded by remember { mutableStateOf(false) }
     var showAlert by remember { mutableStateOf(false) }
+
+    var imageUrl by remember { mutableStateOf("") }
+
+    if (book.image != null){
+        imageUrl = onLoadImage(book.image)
+    }
+
     Card(
         onClick = { onClick(book.id) },
         elevation = CardDefaults.cardElevation(
@@ -86,15 +96,26 @@ fun BookCard(
                     .weight(0.25F),
                 contentAlignment = Alignment.Center,
             ){
-                Image(
-                    Icons.Outlined.Image,
-                    contentDescription = "Placeholder picture",
-                    contentScale = ContentScale.Fit,
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .fillMaxSize()
-                )
+                if (imageUrl == ""){
+                    Image(
+                        Icons.Outlined.Image,
+                        contentDescription = "Placeholder picture",
+                        contentScale = ContentScale.Fit,
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .fillMaxSize()
+                    )
+                }else{
+                    AsyncImage(
+                        model = imageUrl,
+                        contentScale = ContentScale.Crop,
+                        contentDescription = "Book Cover",
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .fillMaxSize()
+                    )
+                }
             }
             Column (
                 verticalArrangement = Arrangement.Top,

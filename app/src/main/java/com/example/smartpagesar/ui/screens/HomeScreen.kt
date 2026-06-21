@@ -1,6 +1,8 @@
 package com.example.smartpagesar.ui.screens
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,6 +11,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -47,10 +50,11 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     navController: NavController,
     books: List<Book>,
-    loginButtonAction: ()-> Unit,
+    loginButtonAction: () -> Unit,
     floatingActionButtonAction: () -> Unit,
     isUserLoggedIn: Boolean,
-    onDelete: (Book)->Unit
+    onDelete: (Book) -> Unit,
+    onLoadImage: (String) -> String
 ){
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -76,6 +80,12 @@ fun HomeScreen(
                         scope.launch { drawerState.close() }
                               },
                     icon = { Icon(Icons.Filled.Settings, "settings") }
+                )
+                NavigationDrawerItem(
+                    label = { Text("Storage") },
+                    selected = false,
+                    onClick = {  },
+                    icon = { Icon(Icons.Default.Storage, "storage") }
                 )
             }
         }
@@ -105,16 +115,29 @@ fun HomeScreen(
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) {innerPadding ->
+            if (!books.isEmpty())
+            {
+                LazyColumn(modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(horizontal = 7.dp)) {
 
-            LazyColumn(modifier = Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 7.dp)) {
-                if (!books.isEmpty()){
                     items(books){item ->
-                        BookCard(item, { onDelete(item) }, { id -> navController.navigate( NavRoute.BookDetailScreen(id)) })
+                        BookCard(
+                            item,
+                            { onDelete(item) },
+                            { id -> navController.navigate( NavRoute.BookDetailScreen(id)) },
+                            onLoadImage
+                        )
                     }
-                }else{
-                    item { Text(stringResource(R.string.no_books)) }
+                }
+            }
+            else
+            {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(stringResource(R.string.no_books))
                 }
             }
         }

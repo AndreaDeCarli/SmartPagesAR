@@ -32,7 +32,8 @@ import com.example.smartpagesar.ui.viewmodels.DownloadBooksViewModel
 fun DownloadBooksScreen(
     navController: NavController,
     viewModel: DownloadBooksViewModel,
-    books: List<Book>
+    books: List<Book>,
+    onLoadImage: (String) -> String
     ){
 
         BackHandler(enabled = true) { }
@@ -50,7 +51,7 @@ fun DownloadBooksScreen(
             .padding(horizontal = 7.dp)) {
             items(books){item ->
                 var downloadProgress by remember { mutableFloatStateOf(0.0f) }
-                DownloadBookCard(item, viewModel)
+                DownloadBookCard(item, viewModel, onLoadImage)
             }
         }
 

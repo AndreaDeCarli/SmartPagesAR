@@ -22,7 +22,7 @@ class RegisterViewModel(
         val password: String = "",
         val confirmPassword: String = "",
         val name: String = "",
-        val role: Role = Role.Student,
+        val role: Role = Role.STUDENT,
         val error: String? = null
     )
 

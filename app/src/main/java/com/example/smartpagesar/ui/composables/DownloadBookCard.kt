@@ -50,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.example.smartpagesar.R
 import com.example.smartpagesar.data.models.Book
 import com.example.smartpagesar.data.models.Subject
@@ -58,10 +59,17 @@ import com.example.smartpagesar.ui.viewmodels.DownloadBooksViewModel
 @Composable
 fun DownloadBookCard(
     book: Book,
-    viewModel: DownloadBooksViewModel
+    viewModel: DownloadBooksViewModel,
+    onLoadImage: (String) -> String
 ){
     var showProgress by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableFloatStateOf(0.0f) }
+
+    var imageUrl by remember { mutableStateOf("") }
+
+    if (book.image != null){
+        imageUrl = onLoadImage(book.image)
+    }
 
     Card(
         elevation = CardDefaults.cardElevation(
@@ -87,15 +95,27 @@ fun DownloadBookCard(
                     .weight(0.20F),
                 contentAlignment = Alignment.Center,
             ){
-                Image(
-                    Icons.Outlined.Image,
-                    contentDescription = "Placeholder picture",
-                    contentScale = ContentScale.Fit,
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .fillMaxSize()
-                )
+                if (imageUrl == ""){
+                    Image(
+                        Icons.Outlined.Image,
+                        contentDescription = "Placeholder picture",
+                        contentScale = ContentScale.Fit,
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .fillMaxSize()
+                    )
+                }else{
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = "Book Cover",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .fillMaxSize()
+                    )
+                }
+
             }
             Column (
                 verticalArrangement = Arrangement.Top,
@@ -167,11 +187,7 @@ fun DownloadBookCard(
                         IconButton(
                             enabled = !showProgress,
                             onClick = {
-                                viewModel.downloadBookWithModels(book.id, book.short_id, {
-                                        progress -> while (downloadProgress <= progress){
-                                    downloadProgress += 0.01f
-                                }
-                                })
+                                viewModel.downloadBookWithModels(book.id, book.short_id, { progress -> downloadProgress = progress })
                                 showProgress = true
                             },
                             colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.tertiary,

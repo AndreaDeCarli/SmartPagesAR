@@ -2,6 +2,7 @@ package com.example.smartpagesar.ui
 
 import android.app.Application
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +15,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.toRoute
 import com.example.smartpagesar.SmartPagesARApplication
+import com.example.smartpagesar.data.models.Book
 import com.example.smartpagesar.ui.screens.ARScreen
 import com.example.smartpagesar.ui.screens.HomeScreen
 import com.example.smartpagesar.ui.screens.LoginScreen
@@ -25,7 +27,6 @@ import com.example.smartpagesar.ui.viewmodels.RegisterViewModel
 import com.example.smartpagesar.ui.viewmodels.RegisterViewModelFactory
 import io.github.jan.supabase.gotrue.auth
 import kotlinx.serialization.Serializable
-import com.example.smartpagesar.data.models.Book
 import com.example.smartpagesar.ui.screens.BookDetailScreen
 import com.example.smartpagesar.ui.screens.DownloadBooksScreen
 import com.example.smartpagesar.ui.screens.SettingsScreen
@@ -41,6 +42,7 @@ import com.example.smartpagesar.ui.viewmodels.ProfileViewModel
 import com.example.smartpagesar.ui.viewmodels.ProfileViewModelFactory
 import com.example.smartpagesar.ui.viewmodels.SettingsState
 import com.example.smartpagesar.ui.viewmodels.SettingsViewModel
+import io.github.jan.supabase.storage.storage
 
 sealed interface NavRoute{
     @Serializable data object HomeScreen : NavRoute
@@ -57,11 +59,9 @@ sealed interface NavRoute{
 fun SmartPagesARNavGraph(navController: NavHostController, settingsState: SettingsState, settingsViewModel: SettingsViewModel){
     val ctx = LocalContext.current
     val app = ctx.applicationContext as SmartPagesARApplication
-    val loggedIn by remember { mutableStateOf(app.supabase.auth.currentSessionOrNull() !== null) }
-    val scope = rememberCoroutineScope()
 
     fun navigateIfLoggedIn(route: NavRoute, otherRoute: NavRoute){
-        if (loggedIn) {
+        if (app.supabase.auth.currentSessionOrNull() !== null) {
             navController.navigate(otherRoute)
         }else{
             navController.navigate(route)
@@ -79,13 +79,18 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
             )
             val books by vm.books.collectAsState()
 
+            LaunchedEffect(Unit) {
+                vm.loadDownloadedBooks()
+            }
+
             HomeScreen(
                 navController,
                 books,
                 { navigateIfLoggedIn(NavRoute.LoginScreen, NavRoute.ProfileScreen) },
                 { navigateIfLoggedIn(NavRoute.HomeScreen,NavRoute.DownloadBooksScreen) },
-                 loggedIn,
-                {book -> vm.deleteDownloadedBook(book, ctx)}
+                app.supabase.auth.currentSessionOrNull() !== null,
+                {book -> vm.deleteDownloadedBook(book, ctx)},
+                { path -> app.supabase.storage["BookCovers"].publicUrl(path) }
                 )
         }
 
@@ -136,12 +141,17 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
             )
         }
         composable<NavRoute.DownloadBooksScreen> {
+
             val vm: DownloadBooksViewModel = viewModel(
                 factory = DownloadBooksViewModelFactory(app.supabase, ctx)
             )
+            val booksToDownload by vm.books.collectAsState()
 
-            val books by vm.books.collectAsState()
-            DownloadBooksScreen(navController, vm, books)
+            DownloadBooksScreen(
+                navController,
+                vm,
+                booksToDownload,
+                { path -> app.supabase.storage["BookCovers"].publicUrl(path) })
         }
         composable<NavRoute.BookDetailScreen> { backStackEntry ->
             val route = backStackEntry.toRoute<NavRoute.BookDetailScreen>()
@@ -154,7 +164,9 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
             val models by vm.models.collectAsState()
             val book by vm.book.collectAsState()
 
-            BookDetailScreen(navController,book, models)
+            val imageUrl = book.image?.let { app.supabase.storage["BookCovers"].publicUrl(it) } ?: ""
+
+            BookDetailScreen(navController,book, models, ctx, imageUrl)
 
         }
 

@@ -12,6 +12,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +21,7 @@ import java.io.File
 
 class DownloadBooksViewModel(
     private val supabase: SupabaseClient,
-    private val context: Context
+    private val context: Context,
 ) : ViewModel() {
 
     private val _books = MutableStateFlow<List<Book>>(emptyList())
@@ -32,11 +33,27 @@ class DownloadBooksViewModel(
     }
 
     fun loadBooks() {
+
         viewModelScope.launch {
             try {
+                val userId = supabase.auth.currentSessionOrNull()?.user?.id ?: return@launch
+                val userBooks = supabase.postgrest["user_book"]
+                    .select {
+                        filter { eq("user_id", userId) }
+                    }
+                    .decodeList<UserBook>()
+
+                val ids = userBooks.map { it.book_id }
+                val formattedIds = "(${ids.joinToString(",") { it }})"
+
                 val result = supabase.postgrest["Books"]
-                    .select() // loads all books
+                    .select{
+                        filter {
+                            filterNot("id", FilterOperator.IN, formattedIds)
+                        }
+                    } // loads all books
                     .decodeList<Book>()
+
 
                 _books.value = result
 

@@ -1,7 +1,9 @@
 package com.example.smartpagesar.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -28,73 +31,92 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.example.smartpagesar.data.models.Book
 import com.example.smartpagesar.data.models.InteractiveModel
 import com.example.smartpagesar.ui.NavRoute
 import com.example.smartpagesar.ui.composables.MainTopAppBar
+import com.example.smartpagesar.ui.composables.ModelCard
 
 @Composable
 fun BookDetailScreen(
     navController: NavController,
     book: Book,
-    models: List<InteractiveModel>
+    models: List<InteractiveModel>,
+    context: Context,
+    imageUrl: String
 ){
     Scaffold(
         topBar = { MainTopAppBar(
             navController = navController,
-            title = book.title,
+            title = "Book details",
             goBack = true,
             ) }
     ) { innerPadding ->
         Column(Modifier.padding(innerPadding)) {
-            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) { }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .background(MaterialTheme.colorScheme.primary)
+            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary){
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    Row(Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp)) {
+                        Text(book.title, fontSize = 24.sp)
+                    }
+                    Row(modifier = Modifier.padding(10.dp)) {
+                        Column(
+                            modifier = Modifier
+                                .weight(0.60f)
+                                .padding(bottom = 12.dp)
+                                .fillMaxHeight()
+                        ){
+                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){Text("Author: ${book.author}", fontSize = 18.sp)}
 
-                ,
-            ) {
-                Row(Modifier.fillMaxWidth()) {
-                    Text(book.title)
-                }
-                Row() {
-                    Column(
-                        modifier = Modifier.weight(0.75f)
-                    ){
-                        Row(Modifier.fillMaxWidth()) {
-                            Text(book.author, fontSize = 12.sp)
+                            if (book.subject != null){
+                                Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("Subject: ${book.subject}", fontSize = 18.sp) }
+                            }
+
+                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("Year: ${book.year}", fontSize = 18.sp) }
+
+                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("Chapters: ${book.chapters}", fontSize = 18.sp) }
+
                         }
-                        if (book.subject != null){
-                            Row(Modifier.fillMaxWidth()) {
-                                Text(book.subject, fontSize = 12.sp)
+                        Box(
+                            modifier = Modifier.weight(0.40f)
+                        ) {
+                            if(imageUrl == ""){
+                                Image(
+                                    Icons.Outlined.Image,
+                                    contentDescription = "Placeholder picture",
+                                    contentScale = ContentScale.Fit,
+                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                                    modifier = Modifier
+                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                        .fillMaxSize()
+                                )
+                            } else{
+                                AsyncImage(
+                                    model = imageUrl,
+                                    contentScale = ContentScale.Crop,
+                                    contentDescription = "Book Cover",
+                                    modifier = Modifier
+                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                        .fillMaxSize()
+                                )
                             }
                         }
-
-                    }
-                    Box(
-                        modifier = Modifier.weight(0.25f)
-                    ) {
-                        Image(
-                            Icons.Outlined.Image,
-                            contentDescription = "Placeholder picture",
-                            contentScale = ContentScale.Fit,
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.primaryContainer)
-                                .fillMaxSize()
-                        )
-
                     }
                 }
-
             }
+
             LazyColumn(modifier = Modifier
-                .padding(innerPadding)
+                .padding(10.dp)
                 .padding(horizontal = 7.dp)) {
                 items(models) { item ->
-
+                    ModelCard(item,book.short_id, context)
                 }
             }
         }
