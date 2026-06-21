@@ -1,7 +1,6 @@
 package com.example.smartpagesar.ui.viewmodels
 
 import android.app.Application
-import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
