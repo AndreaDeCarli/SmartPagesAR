@@ -73,7 +73,7 @@ class ARScreenViewModelFactory(
     }
 }
 
-enum class Speeds(val speed: Float){
+enum class AnimationSpeed(val speed: Float){
     SPEED_1X(1.0f),
     SPEED_025X(0.25f),
     SPEED_05X(0.5f),

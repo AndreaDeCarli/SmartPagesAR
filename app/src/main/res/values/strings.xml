@@ -17,7 +17,6 @@
     <string name="theme_label">Theme</string>
     <string name="role_label">Role</string>
     <string name="name_label">Name</string>
-    <string name="remove_generic">Delete</string>
     <string name="biology_label">Biology</string>
     <string name="math_label">Math</string>
     <string name="history_label">History</string>
@@ -28,4 +27,14 @@
     <string name="no_books">There are no downloaded books</string>
     <string name="download_books">Download new Books</string>
     <string name="recognized_image">Image Recognized</string>
+    <string name="tooltip_parts">Tap on a part of the model to see information about it</string>
+    <string name="tooltip_theme">Change the theme of the app</string>
+    <string name="generic_delete">Delete</string>
+    <string name="generic_confirm">Confirm</string>
+    <string name="generic_cancel">Cancel</string>
+    <string name="alert_delete">Delete Book</string>
+    <string name="alert_delete_desc">Are you sure you want to delete this book? Stored file will be deleted as well</string>
+    <string name="permission_camera">To use AR you need to give this app permission to use camera</string>
+    <string name="ar_scanning">Scanning...</string>
+    <string name="ar_rescan">Scan again</string>
 </resources>

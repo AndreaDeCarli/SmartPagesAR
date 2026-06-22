@@ -186,7 +186,7 @@ fun BookCard(
                     ) {
                         DropdownMenuItem(
                             leadingIcon = { Icon(Icons.Default.Delete, "delete") },
-                            text = { Text(stringResource(R.string.remove_generic)) },
+                            text = { Text(stringResource(R.string.generic_delete)) },
                             onClick = {
                                 showAlert = true
                                 expanded = false
@@ -197,14 +197,14 @@ fun BookCard(
             }
             if (showAlert){
                 GenericAlertDialog(
-                    title = "Delete Book",
-                    text = "Are you sure you want to delete this book and all its models and images?",
-                    confirmText = "Confirm",
+                    title = stringResource(R.string.alert_delete),
+                    text = stringResource(R.string.alert_delete_desc),
+                    confirmText = stringResource(R.string.generic_confirm),
                     confirmAction = {
                         onDelete()
                         showAlert = false
                                     },
-                    dismissText = "Cancel",
+                    dismissText = stringResource(R.string.generic_cancel),
                     dismissAction = { showAlert = false },
                     onDismissRequest = { showAlert = false },
                     icon = Icons.Default.Delete

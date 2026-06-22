@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartpagesar.R
 import com.example.smartpagesar.data.models.Theme
+import com.example.smartpagesar.ui.composables.CustomDescription
 import com.example.smartpagesar.ui.composables.CustomDivider
 import com.example.smartpagesar.ui.composables.MainTopAppBar
 import com.example.smartpagesar.ui.viewmodels.SettingsState
@@ -68,6 +69,7 @@ fun SettingsScreen(
                         }
                     }
                 }
+                CustomDescription(R.string.tooltip_theme, 12)
             }
         }
     }

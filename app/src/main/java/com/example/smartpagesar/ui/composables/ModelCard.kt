@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.smartpagesar.data.models.InteractiveModel
+import com.example.smartpagesar.data.models.InteractiveModelType
 import java.io.File
 
 
@@ -48,13 +49,8 @@ fun ModelCard(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(model.id + ".glb", modifier = Modifier.weight(0.65f), fontSize = 20.sp)
-            when (model.type){
-                0->Text("Static", modifier = Modifier.weight(0.20f))
-                1->Text("Animation", modifier = Modifier.weight(0.20f))
-                2->Text("Parts", modifier = Modifier.weight(0.20f))
-                3->Text("Build", modifier = Modifier.weight(0.20f))
-            }
+            Text(model.id + ".glb", modifier = Modifier.weight(0.55f), fontSize = 20.sp)
+            Text(InteractiveModelType.entries[model.type].toString(), modifier = Modifier.weight(0.30f), fontSize = 12.sp)
             if (File(context.filesDir, "book$shortId/${model.id}.glb").exists()){
                 Icon(Icons.Default.Folder, "storage", modifier = Modifier.weight(0.15f))
             }else{

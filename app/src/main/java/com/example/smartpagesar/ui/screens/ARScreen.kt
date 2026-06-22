@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.RotateLeft
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -24,7 +23,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
-import androidx.xr.arcore.hitTest
 import com.example.smartpagesar.ui.composables.MainBottomAppBar
 import com.example.smartpagesar.ui.viewmodels.ARScreenViewModel
 import com.google.ar.core.Anchor
@@ -37,7 +35,6 @@ import io.github.sceneview.math.Position
 import io.github.sceneview.rememberModelInstance
 import com.example.smartpagesar.R
 import com.google.android.filament.Box
-import io.github.sceneview.ar.ARScene
 import io.github.sceneview.math.Scale
 import io.github.sceneview.model.ModelInstance
 import io.github.sceneview.node.ModelNode
@@ -46,32 +43,28 @@ import io.github.sceneview.rememberEngine
 import io.github.sceneview.ar.rememberARCameraNode
 import io.github.sceneview.rememberARView
 import io.github.sceneview.rememberModelLoader
-import io.github.sceneview.rememberOnGestureListener
-import io.github.sceneview.model.model
 import android.os.Handler
 import android.os.Looper
-import android.widget.ToggleButton
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.ZoomOutMap
+import androidx.compose.material.icons.filled._360
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.IconToggleButton
-import androidx.compose.material3.IconToggleButtonColors
-import androidx.compose.ui.draw.clip
-import androidx.core.graphics.blue
-import dev.romainguy.kotlin.math.Float2
+import androidx.compose.ui.draw.shadow
 import io.github.sceneview.managers.getParentOrNull
 import java.io.File
 import java.nio.ByteBuffer
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material3.IconToggleButtonDefaults
 import com.example.smartpagesar.data.models.NodeExtras
-import com.example.smartpagesar.ui.viewmodels.Speeds
+import com.example.smartpagesar.ui.composables.CustomDescription
+import com.example.smartpagesar.ui.viewmodels.AnimationSpeed
 import com.google.ar.core.CameraConfig
 import com.google.ar.core.CameraConfigFilter
 import kotlinx.serialization.json.Json
@@ -102,7 +95,7 @@ fun ARScreen(
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
     var labelScreenPosition by remember { mutableStateOf<PointF?>(null) }
 
-    var animationSpeed by remember { mutableStateOf<Speeds>(Speeds.SPEED_1X) }
+    var animationSpeed by remember { mutableStateOf(AnimationSpeed.SPEED_1X) }
     var isAnimationPlaying by remember { mutableStateOf(false) }
     var isAnimationLooping by remember { mutableStateOf(false) }
     var animationElapsedTime by remember { mutableFloatStateOf(0f) }
@@ -122,7 +115,7 @@ fun ARScreen(
 
     if (!hasCameraPermission) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Consenti la fotocamera per usare la realtà aumentata")
+            Text(stringResource(R.string.permission_camera))
         }
         return
     }
@@ -183,6 +176,7 @@ fun ARScreen(
                             }
                         }
                     } catch (e: Exception) {
+                        println(e)
                     }
                 },
                 onSessionUpdated = { session, frame ->
@@ -375,7 +369,7 @@ fun ARScreen(
                 containerColor = if (isScanning) Color.Red else MaterialTheme.colorScheme.primary
             ) {
                 Text(
-                    text = if (isScanning) "Scanning..." else "Click to Scan Again",
+                    text = if (isScanning) stringResource(R.string.ar_scanning) else stringResource(R.string.ar_rescan),
                     modifier = Modifier.padding(horizontal = 16.dp),
                     color = Color.White
                 )
@@ -411,7 +405,7 @@ fun ARScreen(
                                     modifier = Modifier.padding(10.dp),
                                     checked = autoRotate,
                                     onCheckedChange = { autoRotate = !autoRotate }
-                                ) { Icon(Icons.Filled.RotateLeft, "rotate") }
+                                ) { Icon(Icons.Filled.LockReset, "lockRotate") }
 
                                 Slider(
                                     modifier = Modifier.padding(10.dp),
@@ -427,10 +421,12 @@ fun ARScreen(
                             }
                             Row(modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(10.dp)
+                                .padding(10.dp, 3.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
+                                Icon(Icons.Default.ZoomOutMap, "scale", tint = MaterialTheme.colorScheme.onSecondary)
                                 Slider(
-                                    modifier = Modifier.padding(10.dp),
+                                    modifier = Modifier.padding(start = 5.dp),
                                     value = scale,
                                     onValueChange = { value ->
                                         scale = value
@@ -451,25 +447,31 @@ fun ARScreen(
                                 RoundedCornerShape(4.dp)
                             )
                         ) {
-                            Row(modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp), horizontalArrangement = Arrangement.SpaceAround
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp, 4.dp),
+                                horizontalArrangement = Arrangement.SpaceAround,
+                                verticalAlignment = Alignment.Bottom
                             ) {
                                 IconButton(
-                                    modifier = Modifier.padding(10.dp).size(80.dp),
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .size(60.dp),
                                     onClick = {
                                         animationSpeed = when (animationSpeed) {
-                                            Speeds.SPEED_1X -> {
-                                                Speeds.SPEED_05X
+                                            AnimationSpeed.SPEED_1X -> {
+                                                AnimationSpeed.SPEED_05X
                                             }
-                                            Speeds.SPEED_05X -> {
-                                                Speeds.SPEED_025X
+                                            AnimationSpeed.SPEED_05X -> {
+                                                AnimationSpeed.SPEED_025X
                                             }
-                                            Speeds.SPEED_025X -> {
-                                                Speeds.SPEED_2X
+                                            AnimationSpeed.SPEED_025X -> {
+                                                AnimationSpeed.SPEED_2X
                                             }
-                                            Speeds.SPEED_2X -> {
-                                                Speeds.SPEED_1X
+                                            AnimationSpeed.SPEED_2X -> {
+                                                AnimationSpeed.SPEED_1X
                                             }
                                         }
                                     },
@@ -479,10 +481,13 @@ fun ARScreen(
                                     ),
                                     shape = RoundedCornerShape(15.dp)
                                 ) {
-                                    Text("${animationSpeed.speed}x")
+                                    Text("${animationSpeed.speed}x", fontSize = 20.sp)
                                 }
                                 IconButton(
-                                    modifier = Modifier.padding(10.dp).size(100.dp),
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .size(80.dp),
                                     onClick = { isAnimationPlaying = !isAnimationPlaying },
                                     colors = IconButtonDefaults.iconButtonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
@@ -498,35 +503,69 @@ fun ARScreen(
                                     }
                                 }
                                 IconToggleButton(
-                                    modifier = Modifier.padding(10.dp).size(80.dp),
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .size(60.dp),
                                     checked = isAnimationLooping,
                                     onCheckedChange = { value -> isAnimationLooping = value },
                                     colors = IconButtonDefaults.iconToggleButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary,
-                                        contentColor = MaterialTheme.colorScheme.onPrimary),
-                                    shape = RoundedCornerShape(15.dp)
+                                        containerColor = MaterialTheme.colorScheme.outline,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                                        checkedContentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = RoundedCornerShape(15.dp),
                                 ){
                                     Icon(Icons.Filled.Loop, "loop", modifier = Modifier.size(40.dp))
                                 }
                             }
-                            Row(modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp, 3.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
+                                Icon(Icons.Default.ZoomOutMap, "scale", tint = MaterialTheme.colorScheme.onSecondary)
                                 Slider(
-                                    modifier = Modifier.padding(10.dp),
+                                    modifier = Modifier.padding(start = 5.dp),
                                     value = scale,
                                     onValueChange = { value ->
                                         scale = value
                                         // Update root or selected node imperatively
                                         nodeSelected?.let { it.scale = Scale(value) }
                                     },
-                                    valueRange = 0.01f..0.06f,
+                                    valueRange = 0.01f..0.1f,
                                 )
                             }
                         }
                     }
                     2 -> {
+                        Column(modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .background(
+                                Color.Black.copy(alpha = 0.8f),
+                                RoundedCornerShape(4.dp))
+                        ) {
+                            CustomDescription(R.string.tooltip_parts)
+                            Row(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp, 3.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default._360, "rotate", tint = MaterialTheme.colorScheme.onSecondary)
+                                Slider(
+                                    modifier = Modifier.padding(5.dp),
+                                    enabled = !autoRotate,
+                                    value = rotation,
+                                    onValueChange = { value ->
+                                        rotation = value
+                                    },
+                                    valueRange = 0f..360f,
+                                )
+                            }
+                        }
                         labelScreenPosition?.let { point ->
 
                             val nodeInfo = parseNodeExtras((nodeSelected as? ModelNode.ChildNode)?.extras)
@@ -548,14 +587,14 @@ fun ARScreen(
                                         modifier = Modifier
                                             .background(
                                                 Color.Black.copy(alpha = 0.8f),
-                                                RoundedCornerShape(4.dp)
+                                                RoundedCornerShape(10.dp)
                                             )
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                            .padding(horizontal = 10.dp, vertical = 8.dp)
                                     ) {
                                         val description = nodeInfo?.description ?: "Selected Component"
                                         val labelTitle = (nodeSelected as? ModelNode.ChildNode)?.name ?: "label"
                                         Text(labelTitle, fontSize = 20.sp, color = Color.White)
-                                        HorizontalDivider()
+                                        HorizontalDivider(modifier = Modifier.padding(vertical = 3.dp))
                                         Text(
                                             text = description,
                                             fontSize = 16.sp,

@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,6 +27,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -66,6 +70,7 @@ fun BookDetailScreen(
                         .padding(10.dp)) {
                         Text(book.title, fontSize = 24.sp)
                     }
+                    HorizontalDivider()
                     Row(modifier = Modifier.padding(10.dp)) {
                         Column(
                             modifier = Modifier
@@ -94,7 +99,8 @@ fun BookDetailScreen(
                                     contentScale = ContentScale.Fit,
                                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                                     modifier = Modifier
-                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                        .background(MaterialTheme.colorScheme.primaryContainer,
+                                            RoundedCornerShape(10.dp))
                                         .fillMaxSize()
                                 )
                             } else{
@@ -103,7 +109,8 @@ fun BookDetailScreen(
                                     contentScale = ContentScale.Crop,
                                     contentDescription = "Book Cover",
                                     modifier = Modifier
-                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                        .shadow(3.dp, RoundedCornerShape(10.dp))
+                                        .clip(RoundedCornerShape(10.dp))
                                         .fillMaxSize()
                                 )
                             }

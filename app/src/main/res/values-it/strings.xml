@@ -17,7 +17,6 @@
     <string name="theme_label">Tema</string>
     <string name="role_label">Ruolo</string>
     <string name="name_label">Nome</string>
-    <string name="remove_generic">Elimina</string>
     <string name="biology_label">Biologia</string>
     <string name="math_label">Matematica</string>
     <string name="history_label">Storia</string>
@@ -28,4 +27,14 @@
     <string name="no_books">Non ci sono libri scaricati</string>
     <string name="download_books">Scarica nuovi libri</string>
     <string name="recognized_image">Riconosciuta immagine</string>
+    <string name="tooltip_parts">Fai tap su una parte del modello per vedere informazini a riguardo</string>
+    <string name="tooltip_theme">Cambia il tema dell\'app</string>
+    <string name="generic_delete">Elimina</string>
+    <string name="generic_confirm">Conferma</string>
+    <string name="generic_cancel">Annulla</string>
+    <string name="alert_delete">Elimina Libro</string>
+    <string name="alert_delete_desc">Sei sicuro di voler eliminare il libro? Anche i file salvati verranno eliminati</string>
+    <string name="permission_camera">Consenti la fotocamera per usare la realtà aumentata</string>
+    <string name="ar_scanning">Scan...</string>
+    <string name="ar_rescan">Scannerizza di nuovo</string>
 </resources>
