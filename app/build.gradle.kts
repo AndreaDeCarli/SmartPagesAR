@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.compose.material3)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.koin.androidx.compose)
     implementation(libs.coil3.coil.compose)

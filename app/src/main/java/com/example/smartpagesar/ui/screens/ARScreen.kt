@@ -50,7 +50,18 @@ import io.github.sceneview.rememberOnGestureListener
 import io.github.sceneview.model.model
 import android.os.Handler
 import android.os.Looper
+import android.widget.ToggleButton
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.filled.Loop
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.IconToggleButtonColors
+import androidx.compose.ui.draw.clip
 import androidx.core.graphics.blue
 import dev.romainguy.kotlin.math.Float2
 import io.github.sceneview.managers.getParentOrNull
@@ -58,8 +69,13 @@ import java.io.File
 import java.nio.ByteBuffer
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.sp
+import androidx.wear.compose.material3.IconToggleButtonDefaults
 import com.example.smartpagesar.data.models.NodeExtras
+import com.example.smartpagesar.ui.viewmodels.Speeds
+import com.google.ar.core.CameraConfig
+import com.google.ar.core.CameraConfigFilter
 import kotlinx.serialization.json.Json
+import java.util.EnumSet
 import kotlin.math.abs
 
 
@@ -85,6 +101,11 @@ fun ARScreen(
     var nodeSelected by remember { mutableStateOf<Node?>(null) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
     var labelScreenPosition by remember { mutableStateOf<PointF?>(null) }
+
+    var animationSpeed by remember { mutableStateOf<Speeds>(Speeds.SPEED_1X) }
+    var isAnimationPlaying by remember { mutableStateOf(false) }
+    var isAnimationLooping by remember { mutableStateOf(false) }
+    var animationElapsedTime by remember { mutableFloatStateOf(0f) }
 
     val engine = rememberEngine()
     val modelLoader = rememberModelLoader(engine)
@@ -151,8 +172,8 @@ fun ARScreen(
                 },
                 onSessionCreated = { session ->
                     try {
-                        val filter = com.google.ar.core.CameraConfigFilter(session).apply {
-                            targetFps = java.util.EnumSet.of(com.google.ar.core.CameraConfig.TargetFps.TARGET_FPS_30)
+                        val filter = CameraConfigFilter(session).apply {
+                            targetFps = EnumSet.of(CameraConfig.TargetFps.TARGET_FPS_30)
                         }
                         val configs = session.getSupportedCameraConfigs(filter)
                         if (configs.isNotEmpty()) {
@@ -212,6 +233,28 @@ fun ARScreen(
                         labelScreenPosition = PointF(screenX, screenY)
                     } else {
                         labelScreenPosition = null
+                    }
+
+                    if (isAnimationPlaying && loadedModelInstance != null) {
+                        val animator = loadedModelInstance!!.animator
+                        if (animator.animationCount > 0) {
+                            val deltaSec = (1f / 60f) * animationSpeed.speed
+                            animationElapsedTime += deltaSec
+
+                            for (i in 0 until animator.animationCount) {
+                                val duration = animator.getAnimationDuration(i)
+
+                                var timeToApply = animationElapsedTime
+                                if (!isAnimationLooping && animationElapsedTime > duration) {
+                                    timeToApply = duration // Freeze at final frame if looping is off
+                                } else if (isAnimationLooping) {
+                                    timeToApply = animationElapsedTime % duration // Wrap back around
+                                }
+
+                                animator.applyAnimation(i, timeToApply)
+                            }
+                            animator.updateBoneMatrices()
+                        }
                     }
                 }
             ) {
@@ -354,7 +397,11 @@ fun ARScreen(
                     0 -> {
                         Column(modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .fillMaxWidth() ) {
+                            .fillMaxWidth()
+                            .background(
+                                Color.Black.copy(alpha = 0.8f),
+                                RoundedCornerShape(4.dp))
+                        ) {
                             Row(modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(10.dp)
@@ -395,6 +442,90 @@ fun ARScreen(
                             }
                         }
                     }
+                    1 -> {
+                        Column(modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .background(
+                                Color.Black.copy(alpha = 0.3f),
+                                RoundedCornerShape(4.dp)
+                            )
+                        ) {
+                            Row(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp), horizontalArrangement = Arrangement.SpaceAround
+                            ) {
+                                IconButton(
+                                    modifier = Modifier.padding(10.dp).size(80.dp),
+                                    onClick = {
+                                        animationSpeed = when (animationSpeed) {
+                                            Speeds.SPEED_1X -> {
+                                                Speeds.SPEED_05X
+                                            }
+                                            Speeds.SPEED_05X -> {
+                                                Speeds.SPEED_025X
+                                            }
+                                            Speeds.SPEED_025X -> {
+                                                Speeds.SPEED_2X
+                                            }
+                                            Speeds.SPEED_2X -> {
+                                                Speeds.SPEED_1X
+                                            }
+                                        }
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = RoundedCornerShape(15.dp)
+                                ) {
+                                    Text("${animationSpeed.speed}x")
+                                }
+                                IconButton(
+                                    modifier = Modifier.padding(10.dp).size(100.dp),
+                                    onClick = { isAnimationPlaying = !isAnimationPlaying },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = RoundedCornerShape(15.dp)
+                                ) {
+                                    if(isAnimationPlaying){
+                                        Icon(Icons.Filled.Pause, "pause")
+                                    }else{
+                                        Icon(Icons.Filled.PlayArrow, "play", modifier = Modifier.size(40.dp))
+
+                                    }
+                                }
+                                IconToggleButton(
+                                    modifier = Modifier.padding(10.dp).size(80.dp),
+                                    checked = isAnimationLooping,
+                                    onCheckedChange = { value -> isAnimationLooping = value },
+                                    colors = IconButtonDefaults.iconToggleButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary),
+                                    shape = RoundedCornerShape(15.dp)
+                                ){
+                                    Icon(Icons.Filled.Loop, "loop", modifier = Modifier.size(40.dp))
+                                }
+                            }
+                            Row(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp)
+                            ) {
+                                Slider(
+                                    modifier = Modifier.padding(10.dp),
+                                    value = scale,
+                                    onValueChange = { value ->
+                                        scale = value
+                                        // Update root or selected node imperatively
+                                        nodeSelected?.let { it.scale = Scale(value) }
+                                    },
+                                    valueRange = 0.01f..0.06f,
+                                )
+                            }
+                        }
+                    }
                     2 -> {
                         labelScreenPosition?.let { point ->
 
@@ -404,7 +535,8 @@ fun ARScreen(
 
                             Box(modifier = Modifier.fillMaxSize()) {
                                 Box(
-                                    modifier = Modifier.width(200.dp)
+                                    modifier = Modifier
+                                        .width(200.dp)
                                         .offset(
                                             x = (point.x / density).dp,
                                             y = (point.y / density).dp
@@ -414,7 +546,10 @@ fun ARScreen(
                                 ) {
                                     Column(
                                         modifier = Modifier
-                                            .background(Color.Black.copy(alpha = 0.8f), RoundedCornerShape(4.dp))
+                                            .background(
+                                                Color.Black.copy(alpha = 0.8f),
+                                                RoundedCornerShape(4.dp)
+                                            )
                                             .padding(horizontal = 8.dp, vertical = 4.dp)
                                     ) {
                                         val description = nodeInfo?.description ?: "Selected Component"
@@ -432,6 +567,7 @@ fun ARScreen(
                             }
                         }
                     }
+                    3 -> {}
                 }
             }
         }

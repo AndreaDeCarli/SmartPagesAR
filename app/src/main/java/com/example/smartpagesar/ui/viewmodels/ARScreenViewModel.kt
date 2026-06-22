@@ -33,7 +33,7 @@ class ARScreenViewModel(
                 val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                 if (bitmap != null) {
                     val name = file.nameWithoutExtension
-                    db.addImage(name, bitmap)
+                    db.addImage(name, bitmap, 0.09f)
                 }
             }
         }
@@ -71,4 +71,11 @@ class ARScreenViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return ARScreenViewModel(app) as T
     }
+}
+
+enum class Speeds(val speed: Float){
+    SPEED_1X(1.0f),
+    SPEED_025X(0.25f),
+    SPEED_05X(0.5f),
+    SPEED_2X(2.0f),
 }

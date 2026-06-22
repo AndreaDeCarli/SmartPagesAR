@@ -19,6 +19,7 @@ datastorePreferences = "1.2.1"
 koinAndroidxCompose = "4.2.1"
 lifecycleViewmodelKtx = "2.10.0"
 arcore = "1.0.0-alpha15"
+composeMaterial3 = "1.6.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -49,6 +50,7 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinAndroidxCompose" }
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 androidx-arcore = { group = "androidx.xr.arcore", name = "arcore", version.ref = "arcore" }
+compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "composeMaterial3" }
 
 
 [plugins]
