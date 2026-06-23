@@ -51,7 +51,7 @@ class DownloadBooksViewModel(
                         filter {
                             filterNot("id", FilterOperator.IN, formattedIds)
                         }
-                    } // loads all books
+                    }
                     .decodeList<Book>()
 
 
@@ -74,10 +74,8 @@ class DownloadBooksViewModel(
             val totalNumber = models.size
             var downloadedNumber = 0
 
-            // 2. For each model, download files
             models.forEach { model ->
 
-                // Download model file
                 val modelBytes = supabase.storage
                     .from("ModelsImages")
                     .downloadPublic("book${shortId}-${model.id}-${model.type}.glb")
@@ -88,7 +86,6 @@ class DownloadBooksViewModel(
                     folderName = "book${shortId}"
                 )
 
-                // Download image file
                 val imageBytes = supabase.storage
                     .from("ModelsImages")
                     .downloadPublic("book${shortId}-${model.id}-${model.type}.png")
@@ -116,11 +113,9 @@ class DownloadBooksViewModel(
         bytes: ByteArray
     ): String {
 
-        // Create the folder inside internal storage
         val dir = File(context.filesDir, folderName)
         if (!dir.exists()) dir.mkdirs()
 
-        // Create the file inside that folder
         val file = File(dir, fileName)
         file.writeBytes(bytes)
 

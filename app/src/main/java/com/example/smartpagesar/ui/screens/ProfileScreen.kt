@@ -101,7 +101,7 @@ fun ProfileScreen(
                 }
             }
             item {
-                Spacer(Modifier.height(300.dp))
+                Spacer(Modifier.height(200.dp))
             }
             item {
                 Button(

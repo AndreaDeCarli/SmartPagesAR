@@ -24,7 +24,11 @@ class BooksViewModel(
     val books = _books.asStateFlow()
 
     init {
-        loadDownloadedBooks()
+        viewModelScope.launch {
+            supabase.auth.sessionStatus.collect { status ->
+                loadDownloadedBooks()
+            }
+        }
     }
 
     fun loadDownloadedBooks() {
@@ -44,10 +48,8 @@ class BooksViewModel(
                     return@launch
                 }
 
-                // 2. Extract book IDs
                 val bookIds = userBooks.map { it.book_id }
 
-                // 3. Fetch the actual books
                 val books = supabase.postgrest["Books"]
                     .select {
                         filter {
@@ -71,7 +73,6 @@ class BooksViewModel(
                 val shortId = book.short_id
                 val folderName = "book$shortId"
 
-                // 1️⃣ Elimina riga da user_book
                 supabase.postgrest["user_book"]
                     .delete {
                         filter {
@@ -80,13 +81,11 @@ class BooksViewModel(
                         }
                     }
 
-                // 2️⃣ Elimina cartella locale: files/book{short_id}
                 val bookFolder = File(context.filesDir, folderName)
                 if (bookFolder.exists()) {
                     bookFolder.deleteRecursively()
                 }
 
-                // 3️⃣ Elimina immagini locali che iniziano con "book{short_id}-"
                 val filesDir = File(context.filesDir, "images")
                 filesDir.listFiles()?.forEach { file ->
                     val name = file.name
@@ -97,7 +96,6 @@ class BooksViewModel(
                     }
                 }
 
-                // 4️⃣ Aggiorna lista libri scaricati
                 loadDownloadedBooks()
 
             } catch (e: Exception) {

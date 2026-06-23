@@ -46,12 +46,12 @@ import io.github.sceneview.rememberModelLoader
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.automirrored.filled._360
 import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.ZoomOutMap
-import androidx.compose.material.icons.filled._360
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -87,7 +87,6 @@ fun ARScreen(
     var anchor by remember { mutableStateOf<Anchor?>(null) }
     var hasAnchored by remember { mutableStateOf(false) }
 
-    // Track whether we are actively scanning (True) or locked (False)
     var isScanning by remember { mutableStateOf(true) }
     var loadedModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
 
@@ -99,6 +98,8 @@ fun ARScreen(
     var isAnimationPlaying by remember { mutableStateOf(false) }
     var isAnimationLooping by remember { mutableStateOf(false) }
     var animationElapsedTime by remember { mutableFloatStateOf(0f) }
+
+    var quarterSection by remember { mutableStateOf(0) }
 
     val engine = rememberEngine()
     val modelLoader = rememberModelLoader(engine)
@@ -292,6 +293,7 @@ fun ARScreen(
                                             0.0f
                                         ),
                                         apply = {
+
                                             if (recognized?.let { image -> image.type.toInt() == 2 }?: false){
 
                                                 this.onSingleTapConfirmed = { e ->
@@ -336,6 +338,19 @@ fun ARScreen(
                                                     }
                                                     true
                                                 }
+                                            }
+                                            else if(recognized?.let { image -> image.type.toInt() == 3 }?: false){
+
+                                                this.onFrame = { frame ->
+
+                                                    when(quarterSection){
+                                                        0 -> nodes.forEach { it.isVisible = true }
+                                                        1 -> { nodes.find { it.name == "top-left" }.let { it?.isVisible = false }}
+                                                        2 -> nodes.filter { it.name == "top-left" || it.name == "bottom-left"}.forEach { it.isVisible = false }
+                                                        3 -> nodes.filter { it.name == "top-left" || it.name == "top-right"}.forEach { it.isVisible = false }
+                                                    }
+                                                }
+
                                             }
                                         }
                                     )
@@ -554,7 +569,7 @@ fun ARScreen(
                                 .padding(10.dp, 3.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default._360, "rotate", tint = MaterialTheme.colorScheme.onSecondary)
+                                Icon(Icons.AutoMirrored.Filled._360, "rotate", tint = MaterialTheme.colorScheme.onSecondary)
                                 Slider(
                                     modifier = Modifier.padding(5.dp),
                                     enabled = !autoRotate,
@@ -580,7 +595,6 @@ fun ARScreen(
                                             x = (point.x / density).dp,
                                             y = (point.y / density).dp
                                         )
-                                        // This ensures the pinpoint hits the center of the text box, not the top-left edge
                                         .wrapContentSize(Alignment.Center)
                                 ) {
                                     Column(
@@ -606,7 +620,104 @@ fun ARScreen(
                             }
                         }
                     }
-                    3 -> {}
+                    3 -> {
+                        Column(modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .background(
+                                Color.Black.copy(alpha = 0.3f),
+                                RoundedCornerShape(4.dp)
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp, 4.dp),
+                                horizontalArrangement = Arrangement.SpaceAround,
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                IconButton(
+                                    enabled = quarterSection == 0 || quarterSection == 1,
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .size(80.dp),
+                                    onClick = {
+                                        if (quarterSection == 0){
+                                            quarterSection = 1
+                                        }else if (quarterSection == 1){
+                                            quarterSection = 0
+                                        }
+                                              },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = RoundedCornerShape(15.dp)
+                                ) {
+                                    Text("quarter", fontSize = 20.sp)
+                                }
+                                IconButton(
+                                    enabled = quarterSection == 0 || quarterSection == 2,
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .size(80.dp),
+                                    onClick = {
+                                        if (quarterSection == 0){
+                                            quarterSection = 2
+                                        }else if (quarterSection == 2){
+                                            quarterSection = 0
+                                        }
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = RoundedCornerShape(15.dp)
+                                ) {
+                                    Text("X", fontSize = 20.sp)
+                                }
+                                IconButton(
+                                    enabled = quarterSection == 0 || quarterSection == 3,
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .size(80.dp),
+                                    onClick = {
+                                        if (quarterSection == 0){
+                                            quarterSection = 3
+                                        }else if (quarterSection == 3){
+                                            quarterSection = 0
+                                        }
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = RoundedCornerShape(15.dp)
+                                ) {
+                                    Text("Y", fontSize = 20.sp)
+                                }
+                            }
+                            Row(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp, 3.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.AutoMirrored.Filled._360, "rotate", tint = MaterialTheme.colorScheme.onSecondary)
+                                Slider(
+                                    modifier = Modifier.padding(5.dp),
+                                    enabled = !autoRotate,
+                                    value = rotation,
+                                    onValueChange = { value ->
+                                        rotation = value
+                                    },
+                                    valueRange = 0f..360f,
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

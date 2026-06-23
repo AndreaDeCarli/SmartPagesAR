@@ -16,11 +16,9 @@ class ARScreenViewModel(
     private val app: Application
 ) : AndroidViewModel(app) {
 
-    // Event when an image is recognized
     private val _recognizedImage = MutableStateFlow<RecognizedImageData?>(null)
     val recognizedImage = _recognizedImage.asStateFlow()
 
-    // Helper function to build and provide the database to ARSceneView
     fun buildAugmentedImageDatabase(session: Session): AugmentedImageDatabase {
         val context = getApplication<Application>()
         val db = AugmentedImageDatabase(session)
