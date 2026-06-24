@@ -23,14 +23,14 @@ fun CustomDescription(stringId: Int, fontSize: Int = 16){
         Icon(
             imageVector = Icons.Outlined.Info,
             contentDescription = "information",
-            tint = MaterialTheme.colorScheme.onSecondary,
+            tint = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier.weight(0.10F)
         )
         Text(
             text = stringResource(stringId),
             modifier = Modifier
                 .weight(0.90F),
-            color = MaterialTheme.colorScheme.onSecondary,
+            color = MaterialTheme.colorScheme.onPrimary,
             fontSize = 16.sp,
             lineHeight = fontSize.sp
         )

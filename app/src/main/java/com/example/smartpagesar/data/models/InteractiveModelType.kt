@@ -4,5 +4,6 @@ enum class InteractiveModelType {
     STATIC,
     ANIMATION,
     PARTS,
-    SECTION
+    SECTION,
+    BUILD
 }

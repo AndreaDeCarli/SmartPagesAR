@@ -1,6 +1,7 @@
 package com.example.smartpagesar.ui.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.PointF
 import androidx.compose.foundation.background
@@ -46,11 +47,16 @@ import io.github.sceneview.rememberModelLoader
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled._360
+import androidx.compose.material.icons.filled.ArrowBackIos
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.ZoomOutMap
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
@@ -65,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import com.example.smartpagesar.data.models.NodeExtras
 import com.example.smartpagesar.ui.composables.CustomDescription
 import com.example.smartpagesar.ui.viewmodels.AnimationSpeed
+import com.google.android.filament.Engine
 import com.google.ar.core.CameraConfig
 import com.google.ar.core.CameraConfigFilter
 import kotlinx.serialization.json.Json
@@ -72,6 +79,7 @@ import java.util.EnumSet
 import kotlin.math.abs
 
 
+@SuppressLint("AutoboxingStateCreation")
 @Composable
 fun ARScreen(
     navController: NavController,
@@ -99,7 +107,10 @@ fun ARScreen(
     var isAnimationLooping by remember { mutableStateOf(false) }
     var animationElapsedTime by remember { mutableFloatStateOf(0f) }
 
-    var quarterSection by remember { mutableStateOf(0) }
+    var quarterSection by remember { mutableIntStateOf(0) }
+
+    var currentBuildStep by remember { mutableIntStateOf(0) }
+    var currentStepNode by remember { mutableStateOf<Node?>(null) }
 
     val engine = rememberEngine()
     val modelLoader = rememberModelLoader(engine)
@@ -154,14 +165,15 @@ fun ARScreen(
                 view = view,
                 modelLoader = modelLoader,
                 cameraNode = cameraNode,
-                planeRenderer = true,
+                planeRenderer = false,
                 onGestureListener = null,
                 sessionConfiguration = { session, config ->
+                    config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
                     config.focusMode = Config.FocusMode.FIXED
                     if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
-                        config.depthMode = Config.DepthMode.AUTOMATIC
+                        config.depthMode = Config.DepthMode.DISABLED
                     }
-                    config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
+                    config.updateMode = Config.UpdateMode.BLOCKING
                     config.augmentedImageDatabase = viewModel.buildAugmentedImageDatabase(session)
                 },
                 onSessionCreated = { session ->
@@ -185,7 +197,7 @@ fun ARScreen(
                         rotation += 0.5f
                         if (rotation >= 360f){ rotation = 0.0f }
                     }
-                    if (isScanning && !hasAnchored) {
+                    if (isScanning) {
                         val updatedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
                         for (augImage in updatedImages) {
                             if (augImage.trackingState == TrackingState.TRACKING &&
@@ -193,10 +205,9 @@ fun ARScreen(
                             ) {
                                 viewModel.onImageRecognized(augImage)
 
-                                anchor = session.createAnchor(augImage.centerPose)
+                                anchor = augImage.createAnchor(augImage.centerPose)
 
 
-                                hasAnchored = true
                                 isScanning = false
                                 break
                             }
@@ -259,7 +270,6 @@ fun ARScreen(
                 if (currentAnchor != null && currentRecognized != null) {
                     AnchorNode(
                         anchor = currentAnchor,
-                        updateAnchorPose = false,
                     ) {
 
                         rememberModelInstance(modelLoader, "models/platform.glb")?.let { platformInstance ->
@@ -301,7 +311,6 @@ fun ARScreen(
                                                         val hitEntity = result.renderable
                                                         if (hitEntity != 0) {
                                                             var current = hitEntity
-                                                            // Find the first parent with a name in the glTF hierarchy
                                                             while (current != 0 && model.getName(current).isNullOrEmpty()) {
                                                                 current = engine.transformManager.getParentOrNull(current) ?: 0
                                                             }
@@ -309,15 +318,13 @@ fun ARScreen(
 
                                                             val rm = engine.renderableManager
 
-                                                            // --- RESET PREVIOUS SELECTION ---
                                                             nodeSelected?.let { prev ->
                                                                 val prevInstance = rm.getInstance(prev.entity)
                                                                 if (prevInstance != 0) {
                                                                     val prevMat = rm.getMaterialInstanceAt(prevInstance, 0)
 
-                                                                    // FIX: Pass as FloatElement.FLOAT3 array instead of separate floats
                                                                     prevMat.setParameter(
-                                                                        "emissiveFactor",0.0f, 0.0f, 0.0f // Turn off the glow
+                                                                        "emissiveFactor",0.0f, 0.0f, 0.0f
                                                                     )
                                                                 }
                                                             }
@@ -327,9 +334,8 @@ fun ARScreen(
                                                             if (instance != 0) {
                                                                 val mat = rm.getMaterialInstanceAt(instance, 0)
 
-                                                                // FIX: Force packed Float3 vector layout for the orange glow
                                                                 mat.setParameter(
-                                                                    "emissiveFactor",1.0f, 0.5f, 0.0f // Distinct orange glow
+                                                                    "emissiveFactor",1.0f, 0.5f, 0.0f
                                                                 )
                                                             }
 
@@ -350,7 +356,17 @@ fun ARScreen(
                                                         3 -> nodes.filter { it.name == "top-left" || it.name == "top-right"}.forEach { it.isVisible = false }
                                                     }
                                                 }
-
+                                            }
+                                            else if(recognized?.let { image -> image.type.toInt() == 4 }?: false) {
+                                                this.onFrame = { frame ->
+                                                    currentStepNode = nodes.find { it.name == "step-$currentBuildStep" }
+                                                    nodes.forEach { it.name?.split("-")[1]?.toInt()?.let { it1 -> it.isVisible =
+                                                        it1 <= currentBuildStep } }
+                                                }
+                                            }
+                                            else{
+                                                this.onFrame = null
+                                                this.onSingleTapConfirmed = null
                                             }
                                         }
                                     )
@@ -371,11 +387,17 @@ fun ARScreen(
                         anchor = null
                         loadedModelInstance = null
                         isScanning = true
-                        hasAnchored = false
                         scale = 0.04f
                         rotation = 0.0f
                         autoRotate = false
                         labelScreenPosition = null
+
+                        isAnimationPlaying = false
+                        isAnimationLooping = false
+
+                        quarterSection = 0
+                        currentBuildStep = 0
+                        currentStepNode = null
                     }
                 },
                 modifier = Modifier
@@ -718,6 +740,99 @@ fun ARScreen(
                             }
                         }
                     }
+                    4 -> {
+                        Column(modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .background(
+                                Color.Black.copy(alpha = 0.3f),
+                                RoundedCornerShape(4.dp)
+                            )
+                        ) {
+                            currentStepNode?.let {
+                                val nodeInfo = parseNodeExtras((currentStepNode as? ModelNode.ChildNode)?.extras)
+
+                                Row(modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp, 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceAround,
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    nodeInfo.description?.let { text -> Text(text, color = Color.White) }
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp, 4.dp),
+                                horizontalArrangement = Arrangement.SpaceAround,
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                IconButton(
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .size(80.dp),
+                                    onClick = { currentBuildStep = 0 },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = RoundedCornerShape(15.dp)
+                                ) {
+                                    Icon(Icons.Default.Restore, "reset")
+                                }
+                                IconButton(
+                                    enabled = currentBuildStep > 0,
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .size(80.dp),
+                                    onClick = { if (currentBuildStep > 0) currentBuildStep-- },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = RoundedCornerShape(15.dp)
+                                ) {
+                                    Icon(Icons.Default.ArrowBackIos, "back")
+                                }
+                                IconButton(
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .size(80.dp),
+                                    onClick = { currentBuildStep++ },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = RoundedCornerShape(15.dp)
+                                ) {
+                                    Icon(Icons.Default.ArrowForwardIos, "forward")
+                                }
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp, 3.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.ZoomOutMap, "scale", tint = MaterialTheme.colorScheme.onSecondary)
+                                Slider(
+                                    modifier = Modifier.padding(start = 5.dp),
+                                    value = scale,
+                                    onValueChange = { value ->
+                                        scale = value
+                                        // Update root or selected node imperatively
+                                        nodeSelected?.let { it.scale = Scale(value) }
+                                    },
+                                    valueRange = 0.01f..0.06f,
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -729,12 +844,12 @@ val gltfJsonDecoder = Json {
     coerceInputValues = true // Falls back to your data class defaults if something is null in JSON
 }
 
-fun parseNodeExtras(rawExtras: String?): NodeExtras? {
-    if (rawExtras.isNullOrEmpty()) return null
+fun parseNodeExtras(rawExtras: String?): NodeExtras {
+    if (rawExtras.isNullOrEmpty()) return NodeExtras("")
 
     return runCatching {
         gltfJsonDecoder.decodeFromString<NodeExtras>(rawExtras)
-    }.getOrNull() // Returns null safely if the string wasn't valid JSON
+    }.getOrElse { NodeExtras("") }// Returns null safely if the string wasn't valid JSON
 }
 
 fun getTrueHeight(boundingBox: Box, scaleFactor: Float): Float{
