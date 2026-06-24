@@ -37,4 +37,11 @@
     <string name="permission_camera">To use AR you need to give this app permission to use camera</string>
     <string name="ar_scanning">Scanning...</string>
     <string name="ar_rescan">Scan again</string>
+    <string name="tooltip_fps">Change the framerate of camera acquisition. Higher fps means better tracking but also may result in a dip in performance</string>
+    <string name="tooltip_lighting">Change the lighting mode for models. Environmental is more realistic but is a bit more costly for performance.</string>
+    <string name="lighting_env_hdr">Environmental HDR</string>
+    <string name="lighting_ambient">Ambiental Intensity</string>
+    <string name="generic_disabled">Disabled</string>
+    <string name="storage_title">Storage</string>
+    <string name="storage_used">Total used space</string>
 </resources>

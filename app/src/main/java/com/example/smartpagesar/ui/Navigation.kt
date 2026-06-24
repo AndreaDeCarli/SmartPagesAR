@@ -26,6 +26,7 @@ import kotlinx.serialization.Serializable
 import com.example.smartpagesar.ui.screens.BookDetailScreen
 import com.example.smartpagesar.ui.screens.DownloadBooksScreen
 import com.example.smartpagesar.ui.screens.SettingsScreen
+import com.example.smartpagesar.ui.screens.StorageScreen
 import com.example.smartpagesar.ui.viewmodels.ARScreenViewModel
 import com.example.smartpagesar.ui.viewmodels.ARScreenViewModelFactory
 import com.example.smartpagesar.ui.viewmodels.BookDetailViewModel
@@ -38,6 +39,8 @@ import com.example.smartpagesar.ui.viewmodels.ProfileViewModel
 import com.example.smartpagesar.ui.viewmodels.ProfileViewModelFactory
 import com.example.smartpagesar.ui.viewmodels.SettingsState
 import com.example.smartpagesar.ui.viewmodels.SettingsViewModel
+import com.example.smartpagesar.ui.viewmodels.StorageViewModel
+import com.example.smartpagesar.ui.viewmodels.StorageViewModelFactory
 import io.github.jan.supabase.storage.storage
 
 sealed interface NavRoute{
@@ -49,6 +52,7 @@ sealed interface NavRoute{
     @Serializable data object SettingsScreen: NavRoute
     @Serializable data object DownloadBooksScreen: NavRoute
     @Serializable data class BookDetailScreen(val bookId: String): NavRoute
+    @Serializable data object StorageScreen: NavRoute
 }
 
 @Composable
@@ -96,7 +100,7 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
                 factory = ARScreenViewModelFactory(LocalContext.current.applicationContext as Application)
             )
 
-            ARScreen(navController, arViewModel)
+            ARScreen(navController, arViewModel, settingsState)
         }
         composable<NavRoute.LoginScreen> {
             val loginVm: LoginViewModel = viewModel(
@@ -152,7 +156,6 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
         composable<NavRoute.BookDetailScreen> { backStackEntry ->
             val route = backStackEntry.toRoute<NavRoute.BookDetailScreen>()
 
-
             val vm: BookDetailViewModel = viewModel(
                 factory = BookDetailViewModelFactory(app.supabase, route.bookId)
             )
@@ -165,8 +168,16 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
             BookDetailScreen(navController,book, models, ctx, imageUrl)
 
         }
+        composable<NavRoute.StorageScreen> {
 
+            val vm: StorageViewModel = viewModel(
+                factory = StorageViewModelFactory(ctx)
+            )
 
+            val folders by vm.folders.collectAsState()
+            val totalSize by vm.totalSize.collectAsState()
+
+            StorageScreen(navController, folders, totalSize)
+        }
     }
 }
-

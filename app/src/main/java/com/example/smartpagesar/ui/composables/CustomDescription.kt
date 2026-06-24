@@ -10,12 +10,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun CustomDescription(stringId: Int, fontSize: Int = 16){
+fun CustomDescription(text: String, fontSize: Int = 16){
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 7.dp, vertical = 10.dp)
@@ -23,15 +22,15 @@ fun CustomDescription(stringId: Int, fontSize: Int = 16){
         Icon(
             imageVector = Icons.Outlined.Info,
             contentDescription = "information",
-            tint = MaterialTheme.colorScheme.onPrimary,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier.weight(0.10F)
         )
         Text(
-            text = stringResource(stringId),
+            text = text,
             modifier = Modifier
                 .weight(0.90F),
-            color = MaterialTheme.colorScheme.onPrimary,
-            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            fontSize = fontSize.sp,
             lineHeight = fontSize.sp
         )
     }

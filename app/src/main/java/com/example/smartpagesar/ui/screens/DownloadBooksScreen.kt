@@ -35,7 +35,7 @@ fun DownloadBooksScreen(
     books: List<Book>,
     onLoadImage: (String) -> String
     ){
-
+        var isDownloading by remember { mutableStateOf(false) }
         BackHandler(enabled = true) { }
 
         Scaffold(

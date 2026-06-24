@@ -7,3 +7,9 @@ enum class Theme(val label: Int) {
     Dark (R.string.theme_dark),
     System (R.string.theme_system)
 }
+
+enum class Lighting(val label: Int) {
+    ENVIRONMENTAL_HDR(R.string.lighting_env_hdr),
+    AMBIENT_INTENSITY(R.string.lighting_ambient),
+    DISABLED(R.string.generic_disabled)
+}

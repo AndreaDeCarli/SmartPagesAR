@@ -125,21 +125,21 @@ fun BookCard(
             ) {
                 Row(modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.4F),
+                    .weight(0.5F),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = book.title,
                         fontSize = 20.sp,
                         color = MaterialTheme.colorScheme.onSecondary,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
 
                 }
                 Row(modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.2F),
+                    .weight(0.5F),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -155,21 +155,10 @@ fun BookCard(
                             text = stringResource(Subject.valueOf(book.subject).label),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSecondary,
-                            maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(0.5f)
                         )
                     }
-                }
-                Row(modifier = Modifier.weight(0.5F), verticalAlignment = Alignment.CenterVertically) {
-                    LinearProgressIndicator(
-                        modifier = Modifier.height(10.dp),
-                        progress = { 0.5f },
-                        color = MaterialTheme.colorScheme.tertiary,
-                        strokeCap = StrokeCap.Round,
-                        gapSize = -10.dp
-
-                    )
                 }
             }
             Box(modifier = Modifier

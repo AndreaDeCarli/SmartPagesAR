@@ -12,8 +12,6 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material3.Button
-import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -23,10 +21,8 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -43,7 +39,6 @@ import com.example.smartpagesar.ui.NavRoute
 import com.example.smartpagesar.ui.composables.BookCard
 import com.example.smartpagesar.ui.composables.MainBottomAppBar
 import com.example.smartpagesar.ui.composables.MainTopAppBar
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -82,9 +77,9 @@ fun HomeScreen(
                     icon = { Icon(Icons.Filled.Settings, "settings") }
                 )
                 NavigationDrawerItem(
-                    label = { Text("Storage") },
+                    label = { Text(stringResource(R.string.storage_title)) },
                     selected = false,
-                    onClick = {  },
+                    onClick = { navController.navigate(NavRoute.StorageScreen) },
                     icon = { Icon(Icons.Default.Storage, "storage") }
                 )
             }

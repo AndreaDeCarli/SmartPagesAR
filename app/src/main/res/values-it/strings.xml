@@ -37,4 +37,11 @@
     <string name="permission_camera">Consenti la fotocamera per usare la realtà aumentata</string>
     <string name="ar_scanning">Scan...</string>
     <string name="ar_rescan">Scannerizza di nuovo</string>
+    <string name="tooltip_fps">Cambia il framerate di acquisizione della fotocamera. Fps maggiori risulteranno in tracking migliore ma possono causare performance peggiori.</string>
+    <string name="tooltip_lighting">Cambia il metodo di illuminazione per i modelli. HDR ambientale è più realistica ma ha un piccolo impatto sulle performance.</string>
+    <string name="lighting_env_hdr">HDR ambientale</string>
+    <string name="lighting_ambient">Intensità ambientale</string>
+    <string name="generic_disabled">Disabilitato</string>
+    <string name="storage_title">Spazio di Archiviazione</string>
+    <string name="storage_used">Spazio totale utilizzato</string>
 </resources>

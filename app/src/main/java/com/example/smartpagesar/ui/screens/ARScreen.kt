@@ -47,10 +47,8 @@ import io.github.sceneview.rememberModelLoader
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled._360
 import androidx.compose.material.icons.filled.ArrowBackIos
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.Loop
@@ -71,8 +69,7 @@ import androidx.compose.ui.unit.sp
 import com.example.smartpagesar.data.models.NodeExtras
 import com.example.smartpagesar.ui.composables.CustomDescription
 import com.example.smartpagesar.ui.viewmodels.AnimationSpeed
-import com.google.android.filament.Engine
-import com.google.ar.core.CameraConfig
+import com.example.smartpagesar.ui.viewmodels.SettingsState
 import com.google.ar.core.CameraConfigFilter
 import kotlinx.serialization.json.Json
 import java.util.EnumSet
@@ -83,7 +80,8 @@ import kotlin.math.abs
 @Composable
 fun ARScreen(
     navController: NavController,
-    viewModel: ARScreenViewModel
+    viewModel: ARScreenViewModel,
+    settingsState: SettingsState
 ) {
     val context = LocalContext.current
     val recognized by viewModel.recognizedImage.collectAsState()
@@ -93,7 +91,6 @@ fun ARScreen(
     var autoRotate by remember { mutableStateOf(false) }
 
     var anchor by remember { mutableStateOf<Anchor?>(null) }
-    var hasAnchored by remember { mutableStateOf(false) }
 
     var isScanning by remember { mutableStateOf(true) }
     var loadedModelInstance by remember { mutableStateOf<ModelInstance?>(null) }
@@ -168,7 +165,7 @@ fun ARScreen(
                 planeRenderer = false,
                 onGestureListener = null,
                 sessionConfiguration = { session, config ->
-                    config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
+                    config.lightEstimationMode = settingsState.lighting
                     config.focusMode = Config.FocusMode.FIXED
                     if (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
                         config.depthMode = Config.DepthMode.DISABLED
@@ -179,7 +176,7 @@ fun ARScreen(
                 onSessionCreated = { session ->
                     try {
                         val filter = CameraConfigFilter(session).apply {
-                            targetFps = EnumSet.of(CameraConfig.TargetFps.TARGET_FPS_30)
+                            targetFps = EnumSet.of(settingsState.fps)
                         }
                         val configs = session.getSupportedCameraConfigs(filter)
                         if (configs.isNotEmpty()) {
@@ -585,7 +582,7 @@ fun ARScreen(
                                 Color.Black.copy(alpha = 0.8f),
                                 RoundedCornerShape(4.dp))
                         ) {
-                            CustomDescription(R.string.tooltip_parts)
+                            CustomDescription(stringResource(R.string.tooltip_parts))
                             Row(modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(10.dp, 3.dp),
@@ -752,14 +749,7 @@ fun ARScreen(
                             currentStepNode?.let {
                                 val nodeInfo = parseNodeExtras((currentStepNode as? ModelNode.ChildNode)?.extras)
 
-                                Row(modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(10.dp, 4.dp),
-                                    horizontalArrangement = Arrangement.SpaceAround,
-                                    verticalAlignment = Alignment.Bottom
-                                ) {
-                                    nodeInfo.description?.let { text -> Text(text, color = Color.White) }
-                                }
+                                CustomDescription(nodeInfo.description!!)
                             }
 
                             Row(

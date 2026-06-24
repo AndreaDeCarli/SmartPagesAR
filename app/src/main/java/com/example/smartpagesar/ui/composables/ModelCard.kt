@@ -1,6 +1,7 @@
 package com.example.smartpagesar.ui.composables
 
 import android.content.Context
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,13 +50,15 @@ fun ModelCard(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(model.id + ".glb", modifier = Modifier.weight(0.55f), fontSize = 20.sp)
-            Text(InteractiveModelType.entries[model.type].toString(), modifier = Modifier.weight(0.30f), fontSize = 12.sp)
-            if (File(context.filesDir, "book$shortId/${model.id}.glb").exists()){
-                Icon(Icons.Default.Folder, "storage", modifier = Modifier.weight(0.15f))
-            }else{
-                Spacer(modifier = Modifier.weight(0.15f))
+            Column( modifier = Modifier.weight(0.55f)) { Text(model.id + ".glb", fontSize = 20.sp)}
+            Column( modifier = Modifier.weight(0.30f)) {
+                Text(InteractiveModelType.entries[model.type].toString(), fontSize = 12.sp)}
+            Column(modifier = Modifier.weight(0.15f)) {
+                if (File(context.filesDir, "book$shortId/${model.id}.glb").exists()){
+                    Icon(Icons.Default.Folder, "storage")
+                }
             }
+
         }
     }
 }
