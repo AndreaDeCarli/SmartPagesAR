@@ -75,7 +75,7 @@ fun SettingsScreen(
                         }
                     }
                 }
-                CustomDescription(stringResource(R.string.tooltip_theme), 12)
+                CustomDescription(stringResource(R.string.tooltip_theme), MaterialTheme.colorScheme.onPrimaryContainer,12)
             }
             item {
                 CustomDivider("Fps")
@@ -104,7 +104,7 @@ fun SettingsScreen(
                         }
                     }
                 }
-                CustomDescription(stringResource(R.string.tooltip_fps), 12)
+                CustomDescription(stringResource(R.string.tooltip_fps),MaterialTheme.colorScheme.onPrimaryContainer, 12)
             }
             item {
                 CustomDivider("Lighting")
@@ -135,12 +135,12 @@ fun SettingsScreen(
                         }
                     }
                 }
-                CustomDescription(stringResource(R.string.tooltip_lighting), 12)
+                CustomDescription(stringResource(R.string.tooltip_lighting), MaterialTheme.colorScheme.onPrimaryContainer,12)
             }
         }
     }
 }
 
 fun processString(string: String): String{
-    return string.replace("_", " ").lowercase().capitalize()
+    return string.replace("_", " ").lowercase().replaceFirstChar { char -> char.uppercase() }
 }

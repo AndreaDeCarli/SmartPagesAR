@@ -17,7 +17,7 @@ class BookDetailViewModel(
 ) : ViewModel() {
 
     private val _models = MutableStateFlow<List<InteractiveModel>>(emptyList())
-    private val _book = MutableStateFlow<Book>(Book("",0,"","","",0,0))
+    private val _book = MutableStateFlow(Book("",0,"","","",0,0))
     val book = _book.asStateFlow()
     val models = _models.asStateFlow()
 

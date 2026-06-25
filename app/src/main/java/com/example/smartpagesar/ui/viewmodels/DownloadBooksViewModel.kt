@@ -63,9 +63,9 @@ class DownloadBooksViewModel(
         }
     }
 
-    fun downloadBookWithModels(bookId: String, shortId: Int, onProgress: (Float)-> Unit) {
+    fun downloadBookWithModels(bookId: String, shortId: Int, onProgress: (Float)-> Unit, onIsDownloading: (Boolean)->Unit) {
         viewModelScope.launch {
-
+            onIsDownloading(true)
             // 1. Get all models for this book
             val models = supabase
                 .from("interactive_model")
@@ -80,7 +80,7 @@ class DownloadBooksViewModel(
                     .from("ModelsImages")
                     .downloadPublic("book${shortId}-${model.id}-${model.type}.glb")
 
-                val modelLocalPath = saveToInternalStorage(
+                saveToInternalStorage(
                     fileName = "${model.id}.glb",
                     bytes = modelBytes,
                     folderName = "book${shortId}"
@@ -90,7 +90,7 @@ class DownloadBooksViewModel(
                     .from("ModelsImages")
                     .downloadPublic("book${shortId}-${model.id}-${model.type}.png")
 
-                val imageLocalPath = saveToInternalStorage(
+                saveToInternalStorage(
                     fileName = "book${shortId}-${model.id}-${model.type}.png",
                     bytes = imageBytes,
                     folderName = "images"
@@ -99,12 +99,14 @@ class DownloadBooksViewModel(
                 downloadedNumber++
                 onProgress(downloadedNumber.toFloat()/totalNumber)
             }
+            onIsDownloading(false)
             val userId = supabase.auth.currentSessionOrNull()?.user?.id ?: return@launch
             // 4. Mark book as downloaded
             supabase.from("user_book").insert(
                 UserBook(user_id = userId, book_id = bookId)
             )
         }
+
     }
 
     private fun saveToInternalStorage(

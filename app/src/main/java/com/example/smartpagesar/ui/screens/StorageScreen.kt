@@ -77,7 +77,7 @@ fun StorageScreen(
             }
             items(folders) { folder ->
                 Column(modifier = Modifier.fillMaxWidth().padding(10.dp)) {
-                    Row() { Text(folder.name, fontSize = 18.sp, color = MaterialTheme.colorScheme.onPrimaryContainer) }
+                    Row { Text(folder.name, fontSize = 18.sp, color = MaterialTheme.colorScheme.onPrimaryContainer) }
                     folder.models.forEach {
                         Row(
                             Modifier.fillMaxWidth().padding(horizontal = 10.dp),

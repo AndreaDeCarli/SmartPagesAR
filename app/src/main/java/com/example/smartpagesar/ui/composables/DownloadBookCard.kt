@@ -12,23 +12,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,17 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.example.smartpagesar.R
 import com.example.smartpagesar.data.models.Book
 import com.example.smartpagesar.data.models.Subject
 import com.example.smartpagesar.ui.viewmodels.DownloadBooksViewModel
@@ -60,7 +47,8 @@ import com.example.smartpagesar.ui.viewmodels.DownloadBooksViewModel
 fun DownloadBookCard(
     book: Book,
     viewModel: DownloadBooksViewModel,
-    onLoadImage: (String) -> String
+    onLoadImage: (String) -> String,
+    onIsDownloading: (Boolean) -> Unit
 ){
     var showProgress by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableFloatStateOf(0.0f) }
@@ -187,7 +175,7 @@ fun DownloadBookCard(
                         IconButton(
                             enabled = !showProgress,
                             onClick = {
-                                viewModel.downloadBookWithModels(book.id, book.short_id, { progress -> downloadProgress = progress })
+                                viewModel.downloadBookWithModels(book.id, book.short_id, { progress -> downloadProgress = progress }, onIsDownloading)
                                 showProgress = true
                             },
                             colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.tertiary,

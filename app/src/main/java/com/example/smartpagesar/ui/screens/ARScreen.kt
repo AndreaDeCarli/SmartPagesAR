@@ -7,7 +7,6 @@ import android.graphics.PointF
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -47,9 +46,10 @@ import io.github.sceneview.rememberModelLoader
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled._360
-import androidx.compose.material.icons.filled.ArrowBackIos
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.filled.Pause
@@ -189,7 +189,7 @@ fun ARScreen(
                         println(e)
                     }
                 },
-                onSessionUpdated = { session, frame ->
+                onSessionUpdated = { _, frame ->
                     if (autoRotate){
                         rotation += 0.5f
                         if (rotation >= 360f){ rotation = 0.0f }
@@ -344,7 +344,7 @@ fun ARScreen(
                                             }
                                             else if(recognized?.let { image -> image.type.toInt() == 3 }?: false){
 
-                                                this.onFrame = { frame ->
+                                                this.onFrame = { _ ->
 
                                                     when(quarterSection){
                                                         0 -> nodes.forEach { it.isVisible = true }
@@ -355,7 +355,7 @@ fun ARScreen(
                                                 }
                                             }
                                             else if(recognized?.let { image -> image.type.toInt() == 4 }?: false) {
-                                                this.onFrame = { frame ->
+                                                this.onFrame = { _ ->
                                                     currentStepNode = nodes.find { it.name == "step-$currentBuildStep" }
                                                     nodes.forEach { it.name?.split("-")[1]?.toInt()?.let { it1 -> it.isVisible =
                                                         it1 <= currentBuildStep } }
@@ -582,7 +582,7 @@ fun ARScreen(
                                 Color.Black.copy(alpha = 0.8f),
                                 RoundedCornerShape(4.dp))
                         ) {
-                            CustomDescription(stringResource(R.string.tooltip_parts))
+                            CustomDescription(stringResource(R.string.tooltip_parts), Color.White)
                             Row(modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(10.dp, 3.dp),
@@ -624,7 +624,7 @@ fun ARScreen(
                                             )
                                             .padding(horizontal = 10.dp, vertical = 8.dp)
                                     ) {
-                                        val description = nodeInfo?.description ?: "Selected Component"
+                                        val description = nodeInfo.description ?: "Selected Component"
                                         val labelTitle = (nodeSelected as? ModelNode.ChildNode)?.name ?: "label"
                                         Text(labelTitle, fontSize = 20.sp, color = Color.White)
                                         HorizontalDivider(modifier = Modifier.padding(vertical = 3.dp))
@@ -749,7 +749,7 @@ fun ARScreen(
                             currentStepNode?.let {
                                 val nodeInfo = parseNodeExtras((currentStepNode as? ModelNode.ChildNode)?.extras)
 
-                                CustomDescription(nodeInfo.description!!)
+                                CustomDescription(nodeInfo.description!!, Color.White)
                             }
 
                             Row(
@@ -786,7 +786,7 @@ fun ARScreen(
                                     ),
                                     shape = RoundedCornerShape(15.dp)
                                 ) {
-                                    Icon(Icons.Default.ArrowBackIos, "back")
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBackIos, "back")
                                 }
                                 IconButton(
                                     modifier = Modifier
@@ -800,7 +800,7 @@ fun ARScreen(
                                     ),
                                     shape = RoundedCornerShape(15.dp)
                                 ) {
-                                    Icon(Icons.Default.ArrowForwardIos, "forward")
+                                    Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, "forward")
                                 }
                             }
                             Row(
@@ -815,7 +815,6 @@ fun ARScreen(
                                     value = scale,
                                     onValueChange = { value ->
                                         scale = value
-                                        // Update root or selected node imperatively
                                         nodeSelected?.let { it.scale = Scale(value) }
                                     },
                                     valueRange = 0.01f..0.06f,
