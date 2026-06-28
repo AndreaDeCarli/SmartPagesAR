@@ -79,7 +79,10 @@ fun HomeScreen(
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.storage_title)) },
                     selected = false,
-                    onClick = { navController.navigate(NavRoute.StorageScreen) },
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(NavRoute.StorageScreen)
+                              },
                     icon = { Icon(Icons.Default.Storage, "storage") }
                 )
             }

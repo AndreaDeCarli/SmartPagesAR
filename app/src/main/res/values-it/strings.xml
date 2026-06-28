@@ -44,4 +44,6 @@
     <string name="generic_disabled">Disabilitato</string>
     <string name="storage_title">Spazio di Archiviazione</string>
     <string name="storage_used">Spazio totale utilizzato</string>
+    <string name="generic_searchbook">Cerca Libro</string>
+    <string name="generic_search">Cerca...</string>
 </resources>

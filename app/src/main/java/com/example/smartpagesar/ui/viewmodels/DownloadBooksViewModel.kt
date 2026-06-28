@@ -15,9 +15,13 @@ import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.collections.emptyList
 
 class DownloadBooksViewModel(
     private val supabase: SupabaseClient,
@@ -27,6 +31,24 @@ class DownloadBooksViewModel(
     private val _books = MutableStateFlow<List<Book>>(emptyList())
     val books = _books.asStateFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    // 2. Combine the base list and query into a single public state for the UI
+    val filteredBooks = combine(_books, _searchQuery) { booksList, query ->
+        if (query.isBlank()) {
+            booksList
+        } else {
+            // Adjust 'book.title' or 'book.name' depending on your Book model's properties
+            booksList.filter { book ->
+                book.title.contains(query, ignoreCase = true)
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     init {
         loadBooks()
@@ -107,6 +129,10 @@ class DownloadBooksViewModel(
             )
         }
 
+    }
+
+    fun onSearchQueryChanged(newQuery: String) {
+        _searchQuery.value = newQuery
     }
 
     private fun saveToInternalStorage(

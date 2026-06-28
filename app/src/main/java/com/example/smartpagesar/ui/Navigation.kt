@@ -145,7 +145,7 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
             val vm: DownloadBooksViewModel = viewModel(
                 factory = DownloadBooksViewModelFactory(app.supabase, ctx)
             )
-            val booksToDownload by vm.books.collectAsState()
+            val booksToDownload by vm.filteredBooks.collectAsState()
 
             DownloadBooksScreen(
                 navController,

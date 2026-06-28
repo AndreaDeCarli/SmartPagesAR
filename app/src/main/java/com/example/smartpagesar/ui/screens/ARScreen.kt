@@ -108,6 +108,7 @@ fun ARScreen(
 
     var currentBuildStep by remember { mutableIntStateOf(0) }
     var currentStepNode by remember { mutableStateOf<Node?>(null) }
+    var maxStepNumber by remember { mutableIntStateOf(0) }
 
     val engine = rememberEngine()
     val modelLoader = rememberModelLoader(engine)
@@ -355,6 +356,7 @@ fun ARScreen(
                                                 }
                                             }
                                             else if(recognized?.let { image -> image.type.toInt() == 4 }?: false) {
+                                                maxStepNumber = nodes.size
                                                 this.onFrame = { _ ->
                                                     currentStepNode = nodes.find { it.name == "step-$currentBuildStep" }
                                                     nodes.forEach { it.name?.split("-")[1]?.toInt()?.let { it1 -> it.isVisible =
@@ -393,8 +395,10 @@ fun ARScreen(
                         isAnimationLooping = false
 
                         quarterSection = 0
+
                         currentBuildStep = 0
                         currentStepNode = null
+                        maxStepNumber = 0
                     }
                 },
                 modifier = Modifier
@@ -659,7 +663,7 @@ fun ARScreen(
                                     enabled = quarterSection == 0 || quarterSection == 1,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .shadow(if(quarterSection == 0 || quarterSection == 1) 4.dp else 0.dp, RoundedCornerShape(15.dp))
                                         .size(80.dp),
                                     onClick = {
                                         if (quarterSection == 0){
@@ -680,7 +684,7 @@ fun ARScreen(
                                     enabled = quarterSection == 0 || quarterSection == 2,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .shadow(if(quarterSection == 0 || quarterSection == 2) 4.dp else 0.dp, RoundedCornerShape(15.dp))
                                         .size(80.dp),
                                     onClick = {
                                         if (quarterSection == 0){
@@ -701,7 +705,7 @@ fun ARScreen(
                                     enabled = quarterSection == 0 || quarterSection == 3,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .shadow(if(quarterSection == 0 || quarterSection == 3) 4.dp else 0.dp, RoundedCornerShape(15.dp))
                                         .size(80.dp),
                                     onClick = {
                                         if (quarterSection == 0){
@@ -777,7 +781,7 @@ fun ARScreen(
                                     enabled = currentBuildStep > 0,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .shadow(if(currentBuildStep > 0) 4.dp else 0.dp, RoundedCornerShape(15.dp))
                                         .size(80.dp),
                                     onClick = { if (currentBuildStep > 0) currentBuildStep-- },
                                     colors = IconButtonDefaults.iconButtonColors(
@@ -789,9 +793,10 @@ fun ARScreen(
                                     Icon(Icons.AutoMirrored.Filled.ArrowBackIos, "back")
                                 }
                                 IconButton(
+                                    enabled = currentBuildStep < maxStepNumber-1,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(4.dp, RoundedCornerShape(15.dp))
+                                        .shadow(if(currentBuildStep < maxStepNumber-1) 4.dp else 0.dp, RoundedCornerShape(15.dp))
                                         .size(80.dp),
                                     onClick = { currentBuildStep++ },
                                     colors = IconButtonDefaults.iconButtonColors(

@@ -44,4 +44,6 @@
     <string name="generic_disabled">Disabled</string>
     <string name="storage_title">Storage</string>
     <string name="storage_used">Total used space</string>
+    <string name="generic_searchbook">Search Book</string>
+    <string name="generic_search">Search...</string>
 </resources>

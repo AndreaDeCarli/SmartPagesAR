@@ -140,7 +140,7 @@ fun DownloadBookCard(
                     )
                     if (book.subject != null){
                         Text(
-                            text = stringResource(Subject.valueOf(book.subject).label),
+                            text = stringResource(Subject.valueOf(book.subject.uppercase()).label),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSecondary,
                             maxLines = 1,
