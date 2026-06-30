@@ -28,12 +28,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.smartpagesar.R
 import com.example.smartpagesar.data.models.Book
 import com.example.smartpagesar.data.models.InteractiveModel
+import com.example.smartpagesar.data.models.Subject
 import com.example.smartpagesar.ui.composables.MainTopAppBar
 import com.example.smartpagesar.ui.composables.ModelCard
 
@@ -48,7 +51,7 @@ fun BookDetailScreen(
     Scaffold(
         topBar = { MainTopAppBar(
             navController = navController,
-            title = "Book details",
+            title = stringResource(R.string.details_title),
             goBack = true,
             ) }
     ) { innerPadding ->
@@ -58,6 +61,8 @@ fun BookDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(300.dp)
+                        .shadow(6.dp, RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
+                        .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
                         .background(MaterialTheme.colorScheme.primary)
                 ) {
                     Row(Modifier
@@ -73,15 +78,27 @@ fun BookDetailScreen(
                                 .padding(bottom = 12.dp)
                                 .fillMaxHeight()
                         ){
-                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){Text("Author: ${book.author}", fontSize = 18.sp)}
+                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){Text("${stringResource(R.string.generic_author)}: ${book.author}", fontSize = 18.sp)}
 
                             if (book.subject != null){
-                                Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("Subject: ${book.subject}", fontSize = 18.sp) }
+                                Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("${
+                                    stringResource(
+                                        R.string.generic_subject
+                                    )
+                                }: ${stringResource(Subject.valueOf(book.subject.uppercase()).label)}", fontSize = 18.sp) }
                             }
 
-                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("Year: ${book.year}", fontSize = 18.sp) }
+                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("${
+                                stringResource(
+                                    R.string.generic_year
+                                )
+                            }: ${book.year}", fontSize = 18.sp) }
 
-                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("Chapters: ${book.chapters}", fontSize = 18.sp) }
+                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("${
+                                stringResource(
+                                    R.string.generic_chapters
+                                )
+                            }: ${book.chapters}", fontSize = 18.sp) }
 
                         }
                         Box(

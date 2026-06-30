@@ -78,6 +78,7 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
                 factory = BooksViewModelFactory(app.supabase)
             )
             val books by vm.books.collectAsState()
+            val isLoading by vm.isLoading.collectAsState()
 
             LaunchedEffect(Unit) {
                 vm.loadDownloadedBooks()
@@ -86,11 +87,12 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
             HomeScreen(
                 navController,
                 books,
-                { navigateIfLoggedIn(NavRoute.LoginScreen, NavRoute.ProfileScreen) },
-                { navigateIfLoggedIn(NavRoute.HomeScreen,NavRoute.DownloadBooksScreen) },
-                app.supabase.auth.currentSessionOrNull() !== null,
-                {book -> vm.deleteDownloadedBook(book, ctx)},
-                { path -> app.supabase.storage["BookCovers"].publicUrl(path) }
+                loginButtonAction = { navigateIfLoggedIn(NavRoute.LoginScreen, NavRoute.ProfileScreen) },
+                floatingActionButtonAction = { navigateIfLoggedIn(NavRoute.HomeScreen,NavRoute.DownloadBooksScreen) },
+                isUserLoggedIn = app.supabase.auth.currentSessionOrNull() !== null,
+                onDelete = {book -> vm.deleteDownloadedBook(book, ctx)},
+                onLoadImage = { path -> app.supabase.storage["BookCovers"].publicUrl(path) },
+                isLoading = isLoading
                 )
         }
 

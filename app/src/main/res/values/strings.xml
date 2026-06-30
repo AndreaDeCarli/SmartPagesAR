@@ -46,4 +46,10 @@
     <string name="storage_used">Total used space</string>
     <string name="generic_searchbook">Search Book</string>
     <string name="generic_search">Search...</string>
+    <string name="generic_author">Author</string>
+    <string name="generic_year">Year</string>
+    <string name="generic_subject">Subject</string>
+    <string name="generic_chapters">Chapters</string>
+    <string name="cant_download">Can\'t download books if not logged in</string>
+    <string name="details_title">Book Details</string>
 </resources>

@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
@@ -121,14 +122,15 @@ fun BookCard(
                 verticalArrangement = Arrangement.Top,
                 modifier = Modifier
                     .weight(0.65F)
-                    .padding(horizontal = 10.dp)
             ) {
                 Row(modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.5F),
+                    .weight(0.5F)
+                    .padding(start = 10.dp, end = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
+                        fontWeight = FontWeight.Bold,
                         text = book.title,
                         fontSize = 20.sp,
                         color = MaterialTheme.colorScheme.onSecondary,
@@ -137,24 +139,28 @@ fun BookCard(
                     )
 
                 }
-                Row(modifier = Modifier
+                Column(modifier = Modifier
                     .fillMaxWidth()
+                    .padding(7.dp)
+                    .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(10.dp))
+                    .padding(start = 10.dp)
                     .weight(0.5F),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.Top
                 ) {
                     Text(
-                        text = book.author,
+                        text = "${stringResource(R.string.generic_author)}: ${book.author}",
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSecondary,
+                        color = MaterialTheme.colorScheme.primary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(0.5f)
                     )
                     if (book.subject != null){
+                        val subject = stringResource(Subject.valueOf(book.subject.uppercase()).label)
                         Text(
-                            text = stringResource(Subject.valueOf(book.subject.uppercase()).label),
+                            text = "${stringResource(R.string.generic_subject)}: ${subject}",
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSecondary,
+                            color = MaterialTheme.colorScheme.primary,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(0.5f)
                         )

@@ -66,6 +66,7 @@ import java.io.File
 import java.nio.ByteBuffer
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.sp
+import com.example.smartpagesar.data.models.InteractiveModelType
 import com.example.smartpagesar.data.models.NodeExtras
 import com.example.smartpagesar.ui.composables.CustomDescription
 import com.example.smartpagesar.ui.viewmodels.AnimationSpeed
@@ -104,7 +105,7 @@ fun ARScreen(
     var isAnimationLooping by remember { mutableStateOf(false) }
     var animationElapsedTime by remember { mutableFloatStateOf(0f) }
 
-    var quarterSection by remember { mutableIntStateOf(0) }
+    var selectedSection by remember { mutableIntStateOf(0) }
 
     var currentBuildStep by remember { mutableIntStateOf(0) }
     var currentStepNode by remember { mutableStateOf<Node?>(null) }
@@ -347,7 +348,7 @@ fun ARScreen(
 
                                                 this.onFrame = { _ ->
 
-                                                    when(quarterSection){
+                                                    when(selectedSection){
                                                         0 -> nodes.forEach { it.isVisible = true }
                                                         1 -> { nodes.find { it.name == "top-left" }.let { it?.isVisible = false }}
                                                         2 -> nodes.filter { it.name == "top-left" || it.name == "bottom-left"}.forEach { it.isVisible = false }
@@ -394,7 +395,7 @@ fun ARScreen(
                         isAnimationPlaying = false
                         isAnimationLooping = false
 
-                        quarterSection = 0
+                        selectedSection = 0
 
                         currentBuildStep = 0
                         currentStepNode = null
@@ -423,7 +424,11 @@ fun ARScreen(
                         .padding(10.dp)
                 ) {
                     Text(stringResource(R.string.recognized_image), color = Color.White)
-                    Text("Model: ${data.model}", color = Color.White)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Model: ${data.model}", color = Color.White)
+                        Icon(InteractiveModelType.entries[data.type.toInt()].icon, "icon", tint = Color.White)
+                    }
+
                 }
                 when (data.type.toInt()){
                     0 -> {
@@ -660,16 +665,16 @@ fun ARScreen(
                                 verticalAlignment = Alignment.Bottom
                             ) {
                                 IconButton(
-                                    enabled = quarterSection == 0 || quarterSection == 1,
+                                    enabled = selectedSection == 0 || selectedSection == 1,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(if(quarterSection == 0 || quarterSection == 1) 4.dp else 0.dp, RoundedCornerShape(15.dp))
+                                        .shadow(if(selectedSection == 0 || selectedSection == 1) 4.dp else 0.dp, RoundedCornerShape(15.dp))
                                         .size(80.dp),
                                     onClick = {
-                                        if (quarterSection == 0){
-                                            quarterSection = 1
-                                        }else if (quarterSection == 1){
-                                            quarterSection = 0
+                                        if (selectedSection == 0){
+                                            selectedSection = 1
+                                        }else if (selectedSection == 1){
+                                            selectedSection = 0
                                         }
                                               },
                                     colors = IconButtonDefaults.iconButtonColors(
@@ -681,16 +686,16 @@ fun ARScreen(
                                     Text("quarter", fontSize = 20.sp)
                                 }
                                 IconButton(
-                                    enabled = quarterSection == 0 || quarterSection == 2,
+                                    enabled = selectedSection == 0 || selectedSection == 2,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(if(quarterSection == 0 || quarterSection == 2) 4.dp else 0.dp, RoundedCornerShape(15.dp))
+                                        .shadow(if(selectedSection == 0 || selectedSection == 2) 4.dp else 0.dp, RoundedCornerShape(15.dp))
                                         .size(80.dp),
                                     onClick = {
-                                        if (quarterSection == 0){
-                                            quarterSection = 2
-                                        }else if (quarterSection == 2){
-                                            quarterSection = 0
+                                        if (selectedSection == 0){
+                                            selectedSection = 2
+                                        }else if (selectedSection == 2){
+                                            selectedSection = 0
                                         }
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(
@@ -702,16 +707,16 @@ fun ARScreen(
                                     Text("X", fontSize = 20.sp)
                                 }
                                 IconButton(
-                                    enabled = quarterSection == 0 || quarterSection == 3,
+                                    enabled = selectedSection == 0 || selectedSection == 3,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(if(quarterSection == 0 || quarterSection == 3) 4.dp else 0.dp, RoundedCornerShape(15.dp))
+                                        .shadow(if(selectedSection == 0 || selectedSection == 3) 4.dp else 0.dp, RoundedCornerShape(15.dp))
                                         .size(80.dp),
                                     onClick = {
-                                        if (quarterSection == 0){
-                                            quarterSection = 3
-                                        }else if (quarterSection == 3){
-                                            quarterSection = 0
+                                        if (selectedSection == 0){
+                                            selectedSection = 3
+                                        }else if (selectedSection == 3){
+                                            selectedSection = 0
                                         }
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(

@@ -2,8 +2,11 @@ package com.example.smartpagesar.ui.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -12,11 +15,13 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
@@ -49,7 +54,8 @@ fun HomeScreen(
     floatingActionButtonAction: () -> Unit,
     isUserLoggedIn: Boolean,
     onDelete: (Book) -> Unit,
-    onLoadImage: (String) -> String
+    onLoadImage: (String) -> String,
+    isLoading: Boolean
 ){
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -113,7 +119,7 @@ fun HomeScreen(
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) {innerPadding ->
-            if (!books.isEmpty())
+            if (!books.isEmpty() && !isLoading)
             {
                 LazyColumn(modifier = Modifier
                     .padding(innerPadding)
@@ -127,6 +133,7 @@ fun HomeScreen(
                             onLoadImage
                         )
                     }
+                    item { Spacer(Modifier.height(100.dp)) }
                 }
             }
             else
@@ -135,7 +142,16 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(stringResource(R.string.no_books))
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .padding(5.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 4.dp)
+                    }else{
+                        Text(stringResource(R.string.no_books))
+                    }
                 }
             }
         }

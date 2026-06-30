@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.smartpagesar.data.models.Book
 import com.example.smartpagesar.data.models.UserBook
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.gotrue.SessionStatus
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
@@ -23,11 +24,22 @@ class BooksViewModel(
     private val _books = MutableStateFlow<List<Book>>(emptyList())
     val books = _books.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
+
     init {
         viewModelScope.launch {
+            _isLoading.value = true
             supabase.auth.sessionStatus.collect { status ->
-                loadDownloadedBooks()
+                if(status is SessionStatus.Authenticated){
+                    loadDownloadedBooks()
+                }
+                else{
+                    _isLoading.value = false
+                }
             }
+
         }
     }
 
@@ -63,6 +75,7 @@ class BooksViewModel(
             } catch (e: Exception) {
                 Log.e("BooksViewModel", "Error loading downloaded books", e)
             }
+            _isLoading.value = false
         }
     }
 
