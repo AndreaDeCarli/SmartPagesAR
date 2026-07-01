@@ -1,6 +1,12 @@
 package com.example.smartpagesar.ui
 
 import android.app.Application
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -70,7 +76,8 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
 
 
     NavHost(navController = navController,
-        startDestination = NavRoute.HomeScreen
+        startDestination = NavRoute.HomeScreen,
+
     ){
         composable<NavRoute.HomeScreen> {
 
@@ -80,9 +87,6 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
             val books by vm.books.collectAsState()
             val isLoading by vm.isLoading.collectAsState()
 
-            LaunchedEffect(Unit) {
-                vm.loadDownloadedBooks()
-            }
 
             HomeScreen(
                 navController,
@@ -96,7 +100,20 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
                 )
         }
 
-        composable<NavRoute.ARScreen> {
+        composable<NavRoute.ARScreen>(
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(600)
+                )
+            }
+        ) {
 
             val arViewModel: ARScreenViewModel = viewModel(
                 factory = ARScreenViewModelFactory(LocalContext.current.applicationContext as Application)
@@ -104,7 +121,20 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
 
             ARScreen(navController, arViewModel, settingsState)
         }
-        composable<NavRoute.LoginScreen> {
+        composable<NavRoute.LoginScreen>(
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Down,
+                    animationSpec = tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Up,
+                    animationSpec = tween(600)
+                )
+            }
+        ) {
             val loginVm: LoginViewModel = viewModel(
                 factory = LoginViewModelFactory(app.supabase)
             )
@@ -123,7 +153,20 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
 
             RegisterScreen(navController, registerVm) { navController.navigate(NavRoute.HomeScreen) }
         }
-        composable<NavRoute.ProfileScreen> {
+        composable<NavRoute.ProfileScreen>(
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Down,
+                    animationSpec = tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Up,
+                    animationSpec = tween(600)
+                )
+            }
+        ) {
 
             val loginVm: LoginViewModel = viewModel(
                 factory = LoginViewModelFactory(app.supabase)
@@ -135,14 +178,40 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
 
             ProfileScreen(navController, user = vm.user) { loginVm.logout( { navController.navigate(NavRoute.HomeScreen)} ) }
         }
-        composable<NavRoute.SettingsScreen> {
+        composable<NavRoute.SettingsScreen>(
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(600)
+                )
+            }
+        ) {
             SettingsScreen(
                 navController = navController,
                 state = settingsState,
                 settingsViewModel = settingsViewModel
             )
         }
-        composable<NavRoute.DownloadBooksScreen> {
+        composable<NavRoute.DownloadBooksScreen>(
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Up,
+                    animationSpec = tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Down,
+                    animationSpec = tween(600)
+                )
+            }
+        ) {
 
             val vm: DownloadBooksViewModel = viewModel(
                 factory = DownloadBooksViewModelFactory(app.supabase, ctx)
@@ -155,11 +224,21 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
                 booksToDownload,
                 { path -> app.supabase.storage["BookCovers"].publicUrl(path) })
         }
-        composable<NavRoute.BookDetailScreen> { backStackEntry ->
+        composable<NavRoute.BookDetailScreen>(
+            enterTransition = {
+                scaleIn(initialScale = 0.5f, animationSpec = tween(600))
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Up,
+                    animationSpec = tween(600)
+                )
+            }
+        ) { backStackEntry ->
             val route = backStackEntry.toRoute<NavRoute.BookDetailScreen>()
 
             val vm: BookDetailViewModel = viewModel(
-                factory = BookDetailViewModelFactory(app.supabase, route.bookId)
+                factory = BookDetailViewModelFactory(app.supabase, route.bookId, ctx)
             )
 
             val models by vm.models.collectAsState()
@@ -170,7 +249,20 @@ fun SmartPagesARNavGraph(navController: NavHostController, settingsState: Settin
             BookDetailScreen(navController,book, models, ctx, imageUrl)
 
         }
-        composable<NavRoute.StorageScreen> {
+        composable<NavRoute.StorageScreen>(
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(600)
+                )
+            }
+        ) {
 
             val vm: StorageViewModel = viewModel(
                 factory = StorageViewModelFactory(ctx)

@@ -72,35 +72,6 @@ fun BookDetailScreen(
                     }
                     HorizontalDivider()
                     Row(modifier = Modifier.padding(10.dp)) {
-                        Column(
-                            modifier = Modifier
-                                .weight(0.60f)
-                                .padding(bottom = 12.dp)
-                                .fillMaxHeight()
-                        ){
-                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){Text("${stringResource(R.string.generic_author)}: ${book.author}", fontSize = 18.sp)}
-
-                            if (book.subject != null){
-                                Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("${
-                                    stringResource(
-                                        R.string.generic_subject
-                                    )
-                                }: ${stringResource(Subject.valueOf(book.subject.uppercase()).label)}", fontSize = 18.sp) }
-                            }
-
-                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("${
-                                stringResource(
-                                    R.string.generic_year
-                                )
-                            }: ${book.year}", fontSize = 18.sp) }
-
-                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("${
-                                stringResource(
-                                    R.string.generic_chapters
-                                )
-                            }: ${book.chapters}", fontSize = 18.sp) }
-
-                        }
                         Box(
                             modifier = Modifier.weight(0.40f)
                         ) {
@@ -127,6 +98,36 @@ fun BookDetailScreen(
                                 )
                             }
                         }
+                        Column(
+                            modifier = Modifier
+                                .weight(0.60f)
+                                .padding(bottom = 12.dp, start = 15.dp)
+                                .fillMaxHeight()
+                        ){
+                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){Text("${stringResource(R.string.generic_author)}: ${book.author}", fontSize = 18.sp)}
+
+                            if (book.subject != null){
+                                Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("${
+                                    stringResource(
+                                        R.string.generic_subject
+                                    )
+                                }: ${stringResource(Subject.valueOf(book.subject.uppercase()).label)}", fontSize = 18.sp) }
+                            }
+
+                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("${
+                                stringResource(
+                                    R.string.generic_year
+                                )
+                            }: ${book.year}", fontSize = 18.sp) }
+
+                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp)){ Text("${
+                                stringResource(
+                                    R.string.generic_chapters
+                                )
+                            }: ${book.chapters}", fontSize = 18.sp) }
+
+                        }
+
                     }
                 }
             }

@@ -35,8 +35,8 @@
     <string name="alert_delete">Elimina Libro</string>
     <string name="alert_delete_desc">Sei sicuro di voler eliminare il libro? Anche i file salvati verranno eliminati</string>
     <string name="permission_camera">Consenti la fotocamera per usare la realtà aumentata</string>
-    <string name="ar_scanning">Scanning...</string>
-    <string name="ar_rescan">Scannerizza di nuovo</string>
+    <string name="ar_scanning">Scansione...</string>
+    <string name="ar_rescan">Nuova scansione</string>
     <string name="tooltip_fps">Cambia il framerate di acquisizione della fotocamera. Fps maggiori risulteranno in tracking migliore ma possono causare performance peggiori.</string>
     <string name="tooltip_lighting">Cambia il metodo di illuminazione per i modelli. HDR ambientale è più realistica ma ha un piccolo impatto sulle performance.</string>
     <string name="lighting_env_hdr">HDR ambientale</string>
@@ -52,4 +52,6 @@
     <string name="generic_chapters">Capitoli</string>
     <string name="cant_download">Non puoi scaricare libri se non hai eseguito l\'accesso</string>
     <string name="details_title">Dettagli Libro</string>
+    <string name="must_log">Devi aver effettuato l\'accesso per vedere i libri. Puoi comunque utilizzare AR con i file scaricati in locale.</string>
+    <string name="no_account">Se non hai già un account, registrati quì</string>
 </resources>

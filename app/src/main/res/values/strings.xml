@@ -52,4 +52,6 @@
     <string name="generic_chapters">Chapters</string>
     <string name="cant_download">Can\'t download books if not logged in</string>
     <string name="details_title">Book Details</string>
+    <string name="must_log">Must be logged in to see books data. You can still use AR for files downloaded locally.</string>
+    <string name="no_account">If you don\'t already have an account, sign up here</string>
 </resources>

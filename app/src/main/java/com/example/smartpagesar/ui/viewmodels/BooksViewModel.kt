@@ -31,50 +31,60 @@ class BooksViewModel(
     init {
         viewModelScope.launch {
             _isLoading.value = true
+
             supabase.auth.sessionStatus.collect { status ->
-                if(status is SessionStatus.Authenticated){
-                    loadDownloadedBooks()
-                }
-                else{
-                    _isLoading.value = false
+                when (status) {
+                    is SessionStatus.Authenticated -> {
+                        val userId = status.session.user?.id
+                        if (userId != null) {
+                            fetchBooksForUser(userId)
+                        } else {
+                            _books.value = emptyList()
+                            _isLoading.value = false
+                        }
+                    }
+
+                    is SessionStatus.NotAuthenticated -> {
+                        _books.value = emptyList()
+                        _isLoading.value = false
+                    }
+                    else -> { /* Keep loading */ }
                 }
             }
-
         }
     }
 
-    fun loadDownloadedBooks() {
-        viewModelScope.launch {
-            try {
-                val userId = supabase.auth.currentSessionOrNull()?.user?.id ?: return@launch
-
-                // 1. Get all rows from user_books for this user
-                val userBooks = supabase.postgrest["user_book"]
-                    .select {
-                        filter { eq("user_id", userId) }
-                    }
-                    .decodeList<UserBook>()
-
-                if (userBooks.isEmpty()) {
-                    _books.value = emptyList()
-                    return@launch
+    // Changed to a standard suspending function (no internal viewModelScope.launch)
+    private suspend fun fetchBooksForUser(userId: String) {
+        try {
+            // 1. Get all rows from user_books for this user
+            val userBooks = supabase.postgrest["user_book"]
+                .select {
+                    filter { eq("user_id", userId) }
                 }
+                .decodeList<UserBook>()
 
-                val bookIds = userBooks.map { it.book_id }
-
-                val books = supabase.postgrest["Books"]
-                    .select {
-                        filter {
-                            filter("id", FilterOperator.IN, "(${bookIds.joinToString(",")})")
-                        }
-                    }
-                    .decodeList<Book>()
-
-                _books.value = books
-
-            } catch (e: Exception) {
-                Log.e("BooksViewModel", "Error loading downloaded books", e)
+            if (userBooks.isEmpty()) {
+                _books.value = emptyList()
+                return
             }
+
+            // 2. Map IDs and fetch the actual books
+            val bookIds = userBooks.map { it.book_id }
+            val fetchedBooks = supabase.postgrest["Books"]
+                .select {
+                    filter {
+                        filter("id", FilterOperator.IN, "(${bookIds.joinToString(",")})")
+                    }
+                }
+                .decodeList<Book>()
+
+            _books.value = fetchedBooks
+
+        } catch (e: Exception) {
+            Log.e("BooksViewModel", "Error loading downloaded books", e)
+        } finally {
+            // This ensures loading turns off whether the try succeeds or catches an error
             _isLoading.value = false
         }
     }
@@ -108,8 +118,7 @@ class BooksViewModel(
                         file.delete()
                     }
                 }
-
-                loadDownloadedBooks()
+                fetchBooksForUser(userId)
 
             } catch (e: Exception) {
                 e.printStackTrace()

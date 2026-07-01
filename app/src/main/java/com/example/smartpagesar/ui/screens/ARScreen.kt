@@ -45,26 +45,34 @@ import io.github.sceneview.rememberARView
 import io.github.sceneview.rememberModelLoader
 import android.os.Handler
 import android.os.Looper
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled._360
+import androidx.compose.material.icons.filled.BorderBottom
+import androidx.compose.material.icons.filled.BorderLeft
+import androidx.compose.material.icons.filled.BorderStyle
 import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.ZoomOutMap
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import io.github.sceneview.managers.getParentOrNull
 import java.io.File
 import java.nio.ByteBuffer
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import com.example.smartpagesar.data.models.InteractiveModelType
 import com.example.smartpagesar.data.models.NodeExtras
@@ -72,8 +80,11 @@ import com.example.smartpagesar.ui.composables.CustomDescription
 import com.example.smartpagesar.ui.viewmodels.AnimationSpeed
 import com.example.smartpagesar.ui.viewmodels.SettingsState
 import com.google.ar.core.CameraConfigFilter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.util.EnumSet
+import kotlin.collections.emptyList
 import kotlin.math.abs
 
 
@@ -99,6 +110,10 @@ fun ARScreen(
     var nodeSelected by remember { mutableStateOf<Node?>(null) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
     var labelScreenPosition by remember { mutableStateOf<PointF?>(null) }
+    var labelOffset by remember { mutableStateOf(Offset.Unspecified) }
+    var selectedNodeExtras by remember { mutableStateOf<NodeExtras?>(null) }
+    var activeNodesList by remember { mutableStateOf<List<Node>>(emptyList()) }
+
 
     var animationSpeed by remember { mutableStateOf(AnimationSpeed.SPEED_1X) }
     var isAnimationPlaying by remember { mutableStateOf(false) }
@@ -124,9 +139,31 @@ fun ARScreen(
         )
     }
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasCameraPermission = isGranted
+    }
+
+// 2. Automatically request permission when the Composable enters the screen
+    LaunchedEffect(Unit) {
+        if (!hasCameraPermission) {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
     if (!hasCameraPermission) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.permission_camera))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = stringResource(R.string.permission_camera),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                // 3. Give them a button to manually trigger it if they dismiss it
+                Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) {
+                    Text("Grant Permission")
+                }
+            }
         }
         return
     }
@@ -135,21 +172,49 @@ fun ARScreen(
         val currentRecognized = recognized
         if (currentRecognized != null) {
             val localFile = File(context.filesDir, "${currentRecognized.folder}/${currentRecognized.model}.glb")
+
             if (localFile.exists()) {
-
-                val fileBytes = localFile.readBytes()
-                val buffer = ByteBuffer.wrap(fileBytes)
-
-
+                // Move file loading and buffering off the Main UI thread completely
+                val buffer = withContext(Dispatchers.IO) {
+                    val fileBytes = localFile.readBytes()
+                    ByteBuffer.wrap(fileBytes)
+                }
+                // Pass the ready buffer back to the main thread's renderer
                 loadedModelInstance = modelLoader.createModelInstance(buffer)
             }
         } else {
-
             loadedModelInstance = null
         }
     }
 
+    // Put this at the top level of your ARScreen Composable function
+    LaunchedEffect(selectedSection, currentBuildStep, activeNodesList) {
+        if (activeNodesList.isEmpty()) return@LaunchedEffect
 
+        when (recognized?.type?.toInt()) {
+            3 -> { // Type 3: Section View visibility checks
+                when (selectedSection) {
+                    0 -> activeNodesList.forEach { it.isVisible = true }
+                    1 -> activeNodesList.forEach { it.isVisible = it.name != "top-left" }
+                    2 -> activeNodesList.forEach { it.isVisible = it.name != "top-left" && it.name != "bottom-left" }
+                    3 -> activeNodesList.forEach { it.isVisible = it.name != "top-left" && it.name != "top-right" }
+                }
+            }
+            4 -> { // Type 4: Construction step calculations
+                maxStepNumber = activeNodesList.size
+
+                // Updates your UI description card text layout instantly
+                currentStepNode = activeNodesList.find { it.name == "step-$currentBuildStep" }
+
+                activeNodesList.forEach { node ->
+                    val stepIndex = node.name?.substringAfter("step-")?.toIntOrNull()
+                    if (stepIndex != null) {
+                        node.isVisible = stepIndex <= currentBuildStep
+                    }
+                }
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = { MainBottomAppBar(navController, 2) }
@@ -193,8 +258,7 @@ fun ARScreen(
                 },
                 onSessionUpdated = { _, frame ->
                     if (autoRotate){
-                        rotation += 0.5f
-                        if (rotation >= 360f){ rotation = 0.0f }
+                        rotation = (rotation + 0.5f) % 360f
                     }
                     if (isScanning) {
                         val updatedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
@@ -221,23 +285,17 @@ fun ARScreen(
                         val viewWidth = viewport.width.toFloat()
                         val viewHeight = viewport.height.toFloat()
 
-                        val screenX: Float
-                        val screenY: Float
-
                         if (abs(rawViewPos.x) <= 2.0f && abs(rawViewPos.y) <= 2.0f) {
-                            screenX = (rawViewPos.x) * viewWidth
-
-                            screenY = (1.0f - rawViewPos.y) * viewHeight
+                            // Creates an unboxed primitive value — zero garbage collection penalty!
+                            labelOffset = Offset(
+                                x = rawViewPos.x * viewWidth,
+                                y = (1.0f - rawViewPos.y) * viewHeight
+                            )
                         } else {
-
-                            screenX = rawViewPos.x
-                            screenY = rawViewPos.y
+                            labelOffset = Offset.Unspecified
                         }
-
-
-                        labelScreenPosition = PointF(screenX, screenY)
                     } else {
-                        labelScreenPosition = null
+                        labelOffset = Offset.Unspecified
                     }
 
                     if (isAnimationPlaying && loadedModelInstance != null) {
@@ -303,6 +361,8 @@ fun ARScreen(
                                         ),
                                         apply = {
 
+                                            activeNodesList = this.nodes
+
                                             if (recognized?.let { image -> image.type.toInt() == 2 }?: false){
 
                                                 this.onSingleTapConfirmed = { e ->
@@ -339,29 +399,10 @@ fun ARScreen(
                                                             }
 
                                                             nodeSelected = tappedNode
+                                                            selectedNodeExtras = parseNodeExtras((tappedNode as? ModelNode.ChildNode)?.extras)
                                                         }
                                                     }
                                                     true
-                                                }
-                                            }
-                                            else if(recognized?.let { image -> image.type.toInt() == 3 }?: false){
-
-                                                this.onFrame = { _ ->
-
-                                                    when(selectedSection){
-                                                        0 -> nodes.forEach { it.isVisible = true }
-                                                        1 -> { nodes.find { it.name == "top-left" }.let { it?.isVisible = false }}
-                                                        2 -> nodes.filter { it.name == "top-left" || it.name == "bottom-left"}.forEach { it.isVisible = false }
-                                                        3 -> nodes.filter { it.name == "top-left" || it.name == "top-right"}.forEach { it.isVisible = false }
-                                                    }
-                                                }
-                                            }
-                                            else if(recognized?.let { image -> image.type.toInt() == 4 }?: false) {
-                                                maxStepNumber = nodes.size
-                                                this.onFrame = { _ ->
-                                                    currentStepNode = nodes.find { it.name == "step-$currentBuildStep" }
-                                                    nodes.forEach { it.name?.split("-")[1]?.toInt()?.let { it1 -> it.isVisible =
-                                                        it1 <= currentBuildStep } }
                                                 }
                                             }
                                             else{
@@ -437,7 +478,8 @@ fun ARScreen(
                             .fillMaxWidth()
                             .background(
                                 Color.Black.copy(alpha = 0.8f),
-                                RoundedCornerShape(4.dp))
+                                RoundedCornerShape(4.dp)
+                            )
                         ) {
                             Row(modifier = Modifier
                                 .fillMaxWidth()
@@ -542,7 +584,6 @@ fun ARScreen(
                                         Icon(Icons.Filled.Pause, "pause")
                                     }else{
                                         Icon(Icons.Filled.PlayArrow, "play", modifier = Modifier.size(40.dp))
-
                                     }
                                 }
                                 IconToggleButton(
@@ -589,7 +630,8 @@ fun ARScreen(
                             .fillMaxWidth()
                             .background(
                                 Color.Black.copy(alpha = 0.8f),
-                                RoundedCornerShape(4.dp))
+                                RoundedCornerShape(4.dp)
+                            )
                         ) {
                             CustomDescription(stringResource(R.string.tooltip_parts), Color.White)
                             Row(modifier = Modifier
@@ -609,20 +651,14 @@ fun ARScreen(
                                 )
                             }
                         }
-                        labelScreenPosition?.let { point ->
-
-                            val nodeInfo = parseNodeExtras((nodeSelected as? ModelNode.ChildNode)?.extras)
-
-                            val density = LocalResources.current.displayMetrics.density
+                        if (labelOffset != Offset.Unspecified){
+                            val nodeInfo = selectedNodeExtras
 
                             Box(modifier = Modifier.fillMaxSize()) {
                                 Box(
                                     modifier = Modifier
                                         .width(200.dp)
-                                        .offset(
-                                            x = (point.x / density).dp,
-                                            y = (point.y / density).dp
-                                        )
+                                        .absoluteOffset { IntOffset(labelOffset.x.toInt(), labelOffset.y.toInt()) }
                                         .wrapContentSize(Alignment.Center)
                                 ) {
                                     Column(
@@ -633,7 +669,7 @@ fun ARScreen(
                                             )
                                             .padding(horizontal = 10.dp, vertical = 8.dp)
                                     ) {
-                                        val description = nodeInfo.description ?: "Selected Component"
+                                        val description = nodeInfo?.description ?: "Selected Component"
                                         val labelTitle = (nodeSelected as? ModelNode.ChildNode)?.name ?: "label"
                                         Text(labelTitle, fontSize = 20.sp, color = Color.White)
                                         HorizontalDivider(modifier = Modifier.padding(vertical = 3.dp))
@@ -647,6 +683,7 @@ fun ARScreen(
                                 }
                             }
                         }
+
                     }
                     3 -> {
                         Column(modifier = Modifier
@@ -668,7 +705,10 @@ fun ARScreen(
                                     enabled = selectedSection == 0 || selectedSection == 1,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(if(selectedSection == 0 || selectedSection == 1) 4.dp else 0.dp, RoundedCornerShape(15.dp))
+                                        .shadow(
+                                            if (selectedSection == 0 || selectedSection == 1) 4.dp else 0.dp,
+                                            RoundedCornerShape(15.dp)
+                                        )
                                         .size(80.dp),
                                     onClick = {
                                         if (selectedSection == 0){
@@ -683,13 +723,16 @@ fun ARScreen(
                                     ),
                                     shape = RoundedCornerShape(15.dp)
                                 ) {
-                                    Text("quarter", fontSize = 20.sp)
+                                    Icon(Icons.Default.BorderStyle, "")
                                 }
                                 IconButton(
                                     enabled = selectedSection == 0 || selectedSection == 2,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(if(selectedSection == 0 || selectedSection == 2) 4.dp else 0.dp, RoundedCornerShape(15.dp))
+                                        .shadow(
+                                            if (selectedSection == 0 || selectedSection == 2) 4.dp else 0.dp,
+                                            RoundedCornerShape(15.dp)
+                                        )
                                         .size(80.dp),
                                     onClick = {
                                         if (selectedSection == 0){
@@ -704,13 +747,16 @@ fun ARScreen(
                                     ),
                                     shape = RoundedCornerShape(15.dp)
                                 ) {
-                                    Text("X", fontSize = 20.sp)
+                                    Icon(Icons.Default.BorderLeft, "")
                                 }
                                 IconButton(
                                     enabled = selectedSection == 0 || selectedSection == 3,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(if(selectedSection == 0 || selectedSection == 3) 4.dp else 0.dp, RoundedCornerShape(15.dp))
+                                        .shadow(
+                                            if (selectedSection == 0 || selectedSection == 3) 4.dp else 0.dp,
+                                            RoundedCornerShape(15.dp)
+                                        )
                                         .size(80.dp),
                                     onClick = {
                                         if (selectedSection == 0){
@@ -725,7 +771,7 @@ fun ARScreen(
                                     ),
                                     shape = RoundedCornerShape(15.dp)
                                 ) {
-                                    Text("Y", fontSize = 20.sp)
+                                    Icon(Icons.Default.BorderBottom, "")
                                 }
                             }
                             Row(modifier = Modifier
@@ -786,7 +832,10 @@ fun ARScreen(
                                     enabled = currentBuildStep > 0,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(if(currentBuildStep > 0) 4.dp else 0.dp, RoundedCornerShape(15.dp))
+                                        .shadow(
+                                            if (currentBuildStep > 0) 4.dp else 0.dp,
+                                            RoundedCornerShape(15.dp)
+                                        )
                                         .size(80.dp),
                                     onClick = { if (currentBuildStep > 0) currentBuildStep-- },
                                     colors = IconButtonDefaults.iconButtonColors(
@@ -801,7 +850,10 @@ fun ARScreen(
                                     enabled = currentBuildStep < maxStepNumber-1,
                                     modifier = Modifier
                                         .padding(10.dp)
-                                        .shadow(if(currentBuildStep < maxStepNumber-1) 4.dp else 0.dp, RoundedCornerShape(15.dp))
+                                        .shadow(
+                                            if (currentBuildStep < maxStepNumber - 1) 4.dp else 0.dp,
+                                            RoundedCornerShape(15.dp)
+                                        )
                                         .size(80.dp),
                                     onClick = { currentBuildStep++ },
                                     colors = IconButtonDefaults.iconButtonColors(

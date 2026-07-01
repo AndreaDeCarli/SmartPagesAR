@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartpagesar.R
 import com.example.smartpagesar.ui.NavRoute
+import com.example.smartpagesar.ui.composables.CustomDescription
 import com.example.smartpagesar.ui.composables.MainTopAppBar
 import com.example.smartpagesar.ui.viewmodels.LoginViewModel
 
@@ -107,7 +108,7 @@ fun LoginScreen(
         }
 
         Spacer(Modifier.height(300.dp))
-
+        CustomDescription(stringResource(R.string.no_account), MaterialTheme.colorScheme.tertiary)
         Button(
             onClick = { navController.navigate(NavRoute.RegisterScreen) },
             modifier = Modifier.fillMaxWidth()

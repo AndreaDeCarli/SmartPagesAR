@@ -1,9 +1,11 @@
 package com.example.smartpagesar.ui.screens
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,6 +17,8 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.outlined.Login
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FloatingActionButton
@@ -36,12 +40,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.smartpagesar.R
 import com.example.smartpagesar.data.models.Book
 import com.example.smartpagesar.ui.NavRoute
 import com.example.smartpagesar.ui.composables.BookCard
+import com.example.smartpagesar.ui.composables.CustomDescription
 import com.example.smartpagesar.ui.composables.MainBottomAppBar
 import com.example.smartpagesar.ui.composables.MainTopAppBar
 import kotlinx.coroutines.launch
@@ -105,13 +111,15 @@ fun HomeScreen(
                 onMenuOpen = { scope.launch{ drawerState.open() } }
                 ) },
             floatingActionButton = {
+                val message = stringResource(R.string.cant_download)
                 FloatingActionButton(
                     onClick = {
                         if (isUserLoggedIn){
                             floatingActionButtonAction()
                         }else{
+
                             scope.launch {
-                                snackbarHostState.showSnackbar("Can't download books if not logged in")
+                                snackbarHostState.showSnackbar(message)
                             }
                         }
                     }
@@ -119,7 +127,39 @@ fun HomeScreen(
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) {innerPadding ->
-            if (!books.isEmpty() && !isLoading)
+            if (!isUserLoggedIn && !isLoading){
+                Box(
+                    modifier = Modifier.padding(20.dp).fillMaxSize().padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CustomDescription(stringResource(R.string.must_log), MaterialTheme.colorScheme.tertiary)
+                        Button(
+                            onClick = loginButtonAction
+                        ) {
+                            Text(stringResource(R.string.signin), modifier = Modifier.padding(end = 10.dp))
+                            Icon(Icons.Outlined.Login, "login")
+
+                        }
+                    }
+
+
+                }
+            }
+            else if (isLoading){
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(75.dp)
+                            .padding(5.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = 7.dp)
+                }
+            }
+            else if (!books.isEmpty())
             {
                 LazyColumn(modifier = Modifier
                     .padding(innerPadding)
@@ -142,16 +182,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .padding(5.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            strokeWidth = 4.dp)
-                    }else{
-                        Text(stringResource(R.string.no_books))
-                    }
+                    Text(stringResource(R.string.no_books))
                 }
             }
         }
