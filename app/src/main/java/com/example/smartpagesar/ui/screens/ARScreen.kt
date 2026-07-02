@@ -71,7 +71,6 @@ import androidx.compose.ui.geometry.Offset
 import io.github.sceneview.managers.getParentOrNull
 import java.io.File
 import java.nio.ByteBuffer
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import com.example.smartpagesar.data.models.InteractiveModelType
@@ -461,7 +460,7 @@ fun ARScreen(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(top = 10.dp, start = 14.dp)
-                        .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                         .padding(10.dp)
                 ) {
                     Text(stringResource(R.string.recognized_image), color = Color.White)
@@ -477,8 +476,8 @@ fun ARScreen(
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
                             .background(
-                                Color.Black.copy(alpha = 0.8f),
-                                RoundedCornerShape(4.dp)
+                                Color.Black.copy(alpha = 0.5f),
+                                RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)
                             )
                         ) {
                             Row(modifier = Modifier
@@ -528,8 +527,8 @@ fun ARScreen(
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
                             .background(
-                                Color.Black.copy(alpha = 0.3f),
-                                RoundedCornerShape(4.dp)
+                                Color.Black.copy(alpha = 0.5f),
+                                RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)
                             )
                         ) {
                             Row(
@@ -629,8 +628,8 @@ fun ARScreen(
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
                             .background(
-                                Color.Black.copy(alpha = 0.8f),
-                                RoundedCornerShape(4.dp)
+                                Color.Black.copy(alpha = 0.5f),
+                                RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)
                             )
                         ) {
                             CustomDescription(stringResource(R.string.tooltip_parts), Color.White)
@@ -690,8 +689,8 @@ fun ARScreen(
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
                             .background(
-                                Color.Black.copy(alpha = 0.3f),
-                                RoundedCornerShape(4.dp)
+                                Color.Black.copy(alpha = 0.5f),
+                                RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)
                             )
                         ) {
                             Row(
@@ -797,8 +796,8 @@ fun ARScreen(
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
                             .background(
-                                Color.Black.copy(alpha = 0.3f),
-                                RoundedCornerShape(4.dp)
+                                Color.Black.copy(alpha = 0.5f),
+                                RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)
                             )
                         ) {
                             currentStepNode?.let {
