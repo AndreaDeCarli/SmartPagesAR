@@ -364,6 +364,8 @@ fun ARScreen(
 
                                             if (recognized?.let { image -> image.type.toInt() == 2 }?: false){
 
+                                                nodes.forEach { it.name?.let { name ->  if(name.contains("_outline")) it.isVisible = false } }
+
                                                 this.onSingleTapConfirmed = { e ->
                                                     view.pick(e.x.toInt(), view.viewport.height - e.y.toInt(), mainHandler) { result ->
                                                         val hitEntity = result.renderable
@@ -377,24 +379,13 @@ fun ARScreen(
                                                             val rm = engine.renderableManager
 
                                                             nodeSelected?.let { prev ->
-                                                                val prevInstance = rm.getInstance(prev.entity)
-                                                                if (prevInstance != 0) {
-                                                                    val prevMat = rm.getMaterialInstanceAt(prevInstance, 0)
-
-                                                                    prevMat.setParameter(
-                                                                        "emissiveFactor",0.0f, 0.0f, 0.0f
-                                                                    )
-                                                                }
+                                                                nodes.forEach { it.name?.let { name ->  if(name.contains("_outline") && name != "${tappedNode?.name}_outline") it.isVisible = false } }
                                                             }
 
                                                             // --- HIGHLIGHT NEW SELECTION ---
                                                             val instance = rm.getInstance(tappedNode?.entity ?: 0)
                                                             if (instance != 0) {
-                                                                val mat = rm.getMaterialInstanceAt(instance, 0)
-
-                                                                mat.setParameter(
-                                                                    "emissiveFactor",1.0f, 0.5f, 0.0f
-                                                                )
+                                                                nodes.find { it.name == "${tappedNode?.name}_outline" }?.isVisible = true
                                                             }
 
                                                             nodeSelected = tappedNode
