@@ -376,17 +376,12 @@ fun ARScreen(
                                                             }
                                                             val tappedNode = nodes.find { it.entity == current } ?: nodes.find { it.entity == hitEntity }
 
-                                                            val rm = engine.renderableManager
-
                                                             nodeSelected?.let { prev ->
-                                                                nodes.forEach { it.name?.let { name ->  if(name.contains("_outline") && name != "${tappedNode?.name}_outline") it.isVisible = false } }
+                                                                nodes.forEach { it.name?.let { name ->  if(name.contains("_outline")) it.isVisible = false } }
                                                             }
 
-                                                            // --- HIGHLIGHT NEW SELECTION ---
-                                                            val instance = rm.getInstance(tappedNode?.entity ?: 0)
-                                                            if (instance != 0) {
-                                                                nodes.find { it.name == "${tappedNode?.name}_outline" }?.isVisible = true
-                                                            }
+                                                            nodes.find { it.name == "${tappedNode?.name}_outline" }?.isVisible = true
+
 
                                                             nodeSelected = tappedNode
                                                             selectedNodeExtras = parseNodeExtras((tappedNode as? ModelNode.ChildNode)?.extras)
